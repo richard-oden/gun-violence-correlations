@@ -11,4 +11,6 @@ if not gun_laws_request.ok:
     raise RuntimeError('Failed to retrieve gun laws wikipedia article.')
 
 soup = BeautifulSoup(gun_laws_request.content, 'html.parser')
-print(soup.prettify())
+table = soup.find('caption', text='Gun laws worldwide\n').parent()
+
+print(table)
