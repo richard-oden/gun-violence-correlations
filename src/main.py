@@ -2,7 +2,14 @@ import pandas as pd
 import os
 
 # Create gun deaths dataframe from Small Arms Survey excel document.
-gun_deaths_df = pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="C, D, AI", skiprows=[0, 1])
+# https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
+gun_deaths_df = pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="D, AI", skiprows=[0, 1])
+
+# Rename columns for readability.
+gun_deaths_df.rename(columns={
+    'Unnamed: 3': 'Country',
+    'Rate.3': 'Violent deaths by firearm'
+}, inplace=True)
 
 # Create gun laws dataframe from wikipedia article.
 gun_laws_df = pd.read_html('https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation', match='Gun laws worldwide')[0]
