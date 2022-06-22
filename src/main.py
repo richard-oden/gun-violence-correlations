@@ -1,5 +1,6 @@
-import pandas as pd
+import enum
 import os
+import pandas as pd
 
 # Create gun deaths dataframe from Small Arms Survey excel document.
 # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
@@ -32,4 +33,11 @@ gun_laws_df.rename(columns={
     'Free of registration[1]': 'Free of registration'
 }, inplace=True)
 
-print(gun_laws_df.columns)
+# Clean gun laws dataframe.
+class GunLawSummary(enum.Enum):
+    NO_DATA = -1
+    RESTRICTED = 0
+    MOSTLY_RESTRICTED = 1
+    CONDITIONAL = 2
+    MOSTLY_PERMITTED = 3
+    PERMITTED = 4
