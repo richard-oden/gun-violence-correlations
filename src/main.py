@@ -15,7 +15,7 @@ gun_deaths_df.rename(columns={
 gun_laws_df = pd.read_html('https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation', match='Gun laws worldwide')[0]
 
 # Convert MultiIndex to single Index.
-gun_laws_df.columns = [col[1] for col in gun_laws_df.columns]
+gun_laws_df = gun_laws_df.droplevel(level=[0, 2], axis=1)
 
 # Drop unwanted columns and rename remaining.
 gun_laws_df.drop(['Magazine capacity limits[N 1]', 'Max penalty (years)[2]'], axis=1, inplace=True)
