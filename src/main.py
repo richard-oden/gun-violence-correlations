@@ -1,6 +1,7 @@
 import enum
 import os
 import pandas as pd
+import re
 
 # Create gun deaths dataframe from Small Arms Survey excel document.
 # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
@@ -34,10 +35,39 @@ gun_laws_df.rename(columns={
 }, inplace=True)
 
 # Clean gun laws dataframe.
-class GunLawSummary(enum.Enum):
+class Regulation(enum.Enum):
     NO_DATA = -1
-    RESTRICTED = 0
-    MOSTLY_RESTRICTED = 1
+    HIGHLY_REGULATED = 0
+    MOSTLY_REGULATED = 1
     CONDITIONAL = 2
-    MOSTLY_PERMITTED = 3
-    PERMITTED = 4
+    MOSTLY_UNREGULATED = 3
+    HIGHLY_UNREGULATED = 4
+
+def get_gun_law_summary(desc: str, is_restriction: bool) -> int:
+    if not desc or desc.isspace() or desc.lower().strip() == 'n/a':
+        return Regulation.NO_DATA
+
+    lc_desc = desc.lower().strip()
+
+    if 'total ban' in lc_desc:
+        return Regulation.HIGHLY_REGULATED
+
+    if lc_desc == 'no':
+        return Regulation.HIGHLY_UNREGULATED if is_restriction else Regulation.HIGHLY_REGULATED
+
+    if 'rarely issued' in lc_desc or 'rarely granted' in lc_desc:
+        return Regulation.MOSTLY_REGULATED
+
+    if lc_desc.startswith('no'):
+        return Regulation.MOSTLY_UNREGULATED if is_restriction else Regulation.MOSTLY_REGULATED
+
+    if lc_desc == 'yes':
+        return Regulation.HIGHLY_REGULATED if is_restriction else Regulation.HIGHLY_UNREGULATED
+
+    if lc_desc.startswith('yes') and 'shall issue' in lc_desc:
+        return Regulation.HIGHLY_UNREGULATED
+
+    if lc_desc.startswith('yes'):
+        return Regulation.MOSTLY_REGULATED if is_restriction else Regulation.MOSTLY_UNREGULATED
+
+    return Regulation.CONDITIONAL
