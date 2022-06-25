@@ -24,15 +24,15 @@ class GunLawsColumnNames(enum.Enum):
     '''
     Represents column names in gun_laws_df.
     '''
-    COUNTRY = 'Country',
-    GOOD_REASON = 'Good Reason Required',
-    PERSONAL_PROTECTION = 'Personal Protection Permitted',
-    LONG_GUNS = 'Long Guns Permitted',
-    HANDGUNS = 'Handguns Permitted',
-    SEMIAUTOMATIC = 'Semi-Automatic Permitted',
-    FULLY_AUTOMATIC = 'Fully Automatic Permitted',
-    OPEN_CARRY = 'Open Carry Permitted',
-    CONCEALED_CARRY = 'Concealed Carry Permitted',
+    COUNTRY = 'Country'
+    GOOD_REASON = 'Good Reason Required'
+    PERSONAL_PROTECTION = 'Personal Protection Permitted'
+    LONG_GUNS = 'Long Guns Permitted'
+    HANDGUNS = 'Handguns Permitted'
+    SEMIAUTOMATIC = 'Semi-Automatic Permitted'
+    FULLY_AUTOMATIC = 'Fully Automatic Permitted'
+    OPEN_CARRY = 'Open Carry Permitted'
+    CONCEALED_CARRY = 'Concealed Carry Permitted'
     FREE_OF_REGISTRATION = 'Free of Registration'
 
 # Drop unwanted columns and rename remaining.
@@ -113,4 +113,4 @@ def get_mean_regulation(row: pd.Series) -> float:
 
 gun_laws_df['Summary Regulation'] = gun_laws_df.apply(get_mean_regulation, axis=1)
 
-print(gun_laws_df.head())
+print(gun_laws_df)
