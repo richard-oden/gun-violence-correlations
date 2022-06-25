@@ -1,7 +1,6 @@
 import enum
 import os
 import pandas as pd
-import re
 
 # Create gun deaths dataframe from Small Arms Survey excel document.
 # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
@@ -43,35 +42,53 @@ class Regulation(enum.Enum):
     MOSTLY_UNREGULATED = 3
     HIGHLY_UNREGULATED = 4
 
-def get_regulation(desc: str, is_restriction: bool) -> int:
+def get_regulation(cell: str, is_restriction: bool) -> int:
     '''
-    Given a field from gun_laws_df and and a bool indicating whether or not this column 
+    Given a cell from gun_laws_df and and a bool indicating whether or not this column 
     represents a restriction, returns a value from the Regulation enum.
     '''
-    if not desc or desc.isspace() or desc.lower().strip() == 'n/a':
+    if not cell or pd.isna(cell) or cell.isspace() or cell.lower().strip() == 'n/a':
         return Regulation.NO_DATA
 
-    lc_desc = desc.lower().strip()
+    lc_cell = cell.lower().strip()
 
-    if 'total ban' in lc_desc:
+    if 'total ban' in lc_cell:
         return Regulation.HIGHLY_REGULATED
 
-    if lc_desc == 'no':
+    if lc_cell == 'no':
         return Regulation.HIGHLY_UNREGULATED if is_restriction else Regulation.HIGHLY_REGULATED
 
-    if 'rarely issued' in lc_desc or 'rarely granted' in lc_desc:
+    if 'rarely issued' in lc_cell or 'rarely granted' in lc_cell:
         return Regulation.MOSTLY_REGULATED
 
-    if lc_desc.startswith('no'):
+    if lc_cell.startswith('no'):
         return Regulation.MOSTLY_UNREGULATED if is_restriction else Regulation.MOSTLY_REGULATED
 
-    if lc_desc == 'yes':
+    if lc_cell == 'yes':
         return Regulation.HIGHLY_REGULATED if is_restriction else Regulation.HIGHLY_UNREGULATED
 
-    if lc_desc.startswith('yes') and 'shall issue' in lc_desc:
+    if lc_cell.startswith('yes') and 'shall issue' in lc_cell:
         return Regulation.HIGHLY_UNREGULATED
 
-    if lc_desc.startswith('yes'):
+    if lc_cell.startswith('yes'):
         return Regulation.MOSTLY_REGULATED if is_restriction else Regulation.MOSTLY_UNREGULATED
 
     return Regulation.CONDITIONAL
+
+def convert_to_regulations(row):
+    '''
+    Converts regulation-related cells in a given row from gun_laws_df to Regulation enum values.
+    '''
+    row['Good reason required'] = get_regulation(row['Good reason required'], True)
+    row['Personal protection permitted'] = get_regulation(row['Personal protection permitted'], False)
+    row['Long guns permitted'] = get_regulation(row['Long guns permitted'], False)
+    row['Handguns permitted'] = get_regulation(row['Handguns permitted'], False)
+    row['Semi-automatic permitted'] = get_regulation(row['Semi-automatic permitted'], False)
+    row['Fully automatic permitted'] = get_regulation(row['Fully automatic permitted'], False)
+    row['Open carry permitted'] = get_regulation(row['Open carry permitted'], False)
+    row['Concealed carry permitted'] = get_regulation(row['Concealed carry permitted'], False)
+    row['Free of registration'] = get_regulation(row['Free of registration'], False)
+
+gun_laws_df.apply(convert_to_regulations, axis=1)
+
+print(gun_laws_df.head())
