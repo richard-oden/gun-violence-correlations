@@ -43,7 +43,11 @@ class Regulation(enum.Enum):
     MOSTLY_UNREGULATED = 3
     HIGHLY_UNREGULATED = 4
 
-def get_gun_law_summary(desc: str, is_restriction: bool) -> int:
+def get_regulation(desc: str, is_restriction: bool) -> int:
+    '''
+    Given a field from gun_laws_df and and a bool indicating whether or not this column 
+    represents a restriction, returns a value from the Regulation enum.
+    '''
     if not desc or desc.isspace() or desc.lower().strip() == 'n/a':
         return Regulation.NO_DATA
 
