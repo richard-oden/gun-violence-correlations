@@ -104,13 +104,13 @@ def convert_to_regulations(row: pd.Series) -> None:
 
 gun_laws_df.apply(convert_to_regulations, axis=1)
 
-def calculate_mean_regulation(row: pd.Series):
+def get_mean_regulation(row: pd.Series) -> float:
     '''
-    Calculates the mean regulation for row and appends as column.
+    Calculates the mean regulation for row.
     '''
-    row['Summary Regulation'] = mean([row[column_name.value].value for column_name in GunLawsColumnNames 
+    return mean([row[column_name.value].value for column_name in GunLawsColumnNames 
         if column_name is not GunLawsColumnNames.COUNTRY and row[column_name.value] is not Regulation.NO_DATA])
 
-gun_laws_df.apply(calculate_mean_regulation, axis=1)
+gun_laws_df['Summary Regulation'] = gun_laws_df.apply(get_mean_regulation, axis=1)
 
 print(gun_laws_df.head())
