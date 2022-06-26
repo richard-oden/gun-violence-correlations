@@ -13,6 +13,9 @@ gun_deaths_df.rename(columns={
     'Rate.3': 'Violent deaths by firearm'
 }, inplace=True)
 
+# Drop rows with no country.
+gun_deaths_df.dropna(subset=['Country'], inplace=True)
+
 # Create gun laws dataframe from wikipedia article.
 gun_laws_df = pd.read_html('https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation', match='Gun laws worldwide')[0]
 
@@ -92,7 +95,7 @@ def get_regulation(cell: str, is_restriction: bool) -> Regulation:
 
     return Regulation.CONDITIONAL
 
-def convert_to_regulations(row: pd.Series) -> None:
+def convert_to_regulations(gun_laws_row: pd.Series) -> None:
     '''
     Converts regulation-related cells in a given row from gun_laws_df to Regulation enum values.
     '''
@@ -100,17 +103,31 @@ def convert_to_regulations(row: pd.Series) -> None:
         if column_name is GunLawsColumnNames.COUNTRY:
             continue
         is_restriction = column_name is GunLawsColumnNames.GOOD_REASON
-        row[column_name.value] = get_regulation(row[column_name.value], is_restriction)
+        gun_laws_row[column_name.value] = get_regulation(gun_laws_row[column_name.value], is_restriction)
 
 gun_laws_df.apply(convert_to_regulations, axis=1)
 
-def get_mean_regulation(row: pd.Series) -> float:
+def get_mean_regulation(gun_laws_row: pd.Series) -> float:
     '''
     Calculates the mean regulation for row.
     '''
-    return mean([row[column_name.value].value for column_name in GunLawsColumnNames 
-        if column_name is not GunLawsColumnNames.COUNTRY and row[column_name.value] is not Regulation.NO_DATA])
+    return mean([gun_laws_row[column_name.value].value for column_name in GunLawsColumnNames 
+        if column_name is not GunLawsColumnNames.COUNTRY and gun_laws_row[column_name.value] is not Regulation.NO_DATA])
 
 gun_laws_df['Summary Regulation'] = gun_laws_df.apply(get_mean_regulation, axis=1)
+
+def rename_countries(gun_laws_row: pd.Series) -> None:
+    '''
+    If the Country in gun_laws_row is represented in gun_deaths_df, changes the Country cell
+    to the value from from gun_deaths_df. Otherwise changes it to None.
+    '''
+    gun_laws_row[GunLawsColumnNames.COUNTRY.value] = next((country_name for country_name in gun_deaths_df['Country'].tolist() 
+        if country_name.lower().strip() in gun_laws_row[GunLawsColumnNames.COUNTRY.value].lower()), None)
+
+gun_laws_df.apply(rename_countries, axis=1)
+
+print(gun_laws_df)
+
+gun_laws_df.dropna(subset=[GunLawsColumnNames.COUNTRY.value], inplace=True)
 
 print(gun_laws_df)
