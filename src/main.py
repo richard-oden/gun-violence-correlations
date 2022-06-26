@@ -22,7 +22,6 @@ gun_laws_df = pd.read_html('https://en.wikipedia.org/wiki/Overview_of_gun_laws_b
 # Convert MultiIndex to single Index.
 gun_laws_df = gun_laws_df.droplevel(level=[0, 2], axis=1)
 
-
 class GunLawsColumnNames(enum.Enum):
     '''
     Represents column names in gun_laws_df.
@@ -52,6 +51,9 @@ gun_laws_df.rename(columns={
     'Concealed carry[8]': GunLawsColumnNames.CONCEALED_CARRY.value,
     'Free of registration[1]': GunLawsColumnNames.FREE_OF_REGISTRATION.value
 }, inplace=True)
+
+# Drop rows that represent subheadings.
+gun_laws_df = gun_laws_df[gun_laws_df[GunLawsColumnNames.COUNTRY.value] != 'Region']
 
 # Clean gun laws dataframe.
 class Regulation(enum.Enum):
