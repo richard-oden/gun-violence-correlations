@@ -116,18 +116,13 @@ def get_mean_regulation(gun_laws_row: pd.Series) -> float:
 
 gun_laws_df['Summary Regulation'] = gun_laws_df.apply(get_mean_regulation, axis=1)
 
-def rename_countries(gun_laws_row: pd.Series) -> None:
+def get_country_name(gun_laws_row: pd.Series) -> str | None:
     '''
-    If the Country in gun_laws_row is represented in gun_deaths_df, changes the Country cell
-    to the value from from gun_deaths_df. Otherwise changes it to None.
+    If the Country in gun_laws_row is represented in gun_deaths_df, returns the value of the Country cell
+    from from gun_deaths_df. Otherwise returns None.
     '''
-    gun_laws_row[GunLawsColumnNames.COUNTRY.value] = next((country_name for country_name in gun_deaths_df['Country'].tolist() 
+    return next((country_name for country_name in gun_deaths_df['Country'].tolist() 
         if country_name.lower().strip() in gun_laws_row[GunLawsColumnNames.COUNTRY.value].lower()), None)
 
-gun_laws_df.apply(rename_countries, axis=1)
-
-print(gun_laws_df)
-
+gun_laws_df[GunLawsColumnNames.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1)
 gun_laws_df.dropna(subset=[GunLawsColumnNames.COUNTRY.value], inplace=True)
-
-print(gun_laws_df)
