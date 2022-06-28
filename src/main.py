@@ -10,7 +10,7 @@ gun_deaths_df = pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent
 # Rename columns for readability.
 gun_deaths_df.rename(columns={
     'Unnamed: 3': 'Country',
-    'Rate.3': 'Violent deaths by firearm'
+    'Rate.3': 'Violent Deaths by Firearm'
 }, inplace=True)
 
 # Drop rows with no country.
@@ -120,6 +120,8 @@ def convert_to_regulations(row: pd.Series) -> None:
         row[column_name.value] = get_regulation(row[column_name.value], is_restriction)
 
 merged_df.apply(convert_to_regulations, axis=1)
+
+print(merged_df)
 
 def get_mean_regulation(row: pd.Series) -> float:
     '''
