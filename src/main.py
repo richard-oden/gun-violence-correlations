@@ -65,7 +65,8 @@ def get_country_name(gun_laws_row: pd.Series) -> str | None:
         if country_name.lower().strip() in gun_laws_row[GunLawsColumnNames.COUNTRY.value].lower()), None)
 
 gun_laws_df[GunLawsColumnNames.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1)
-gun_laws_df.dropna(subset=[GunLawsColumnNames.COUNTRY.value], inplace=True)
+
+merged_df = pd.merge(gun_deaths_df, gun_laws_df, how='inner', on=GunLawsColumnNames.COUNTRY.value)
 
 class Regulation(enum.Enum):
     NO_DATA = -1
@@ -77,8 +78,8 @@ class Regulation(enum.Enum):
 
 def get_regulation(cell: str, is_restriction: bool) -> Regulation:
     '''
-    Given a cell from gun_laws_df and and a bool indicating whether or not this column 
-    represents a restriction, returns a value from the Regulation enum.
+    Given a cell and a bool indicating whether or not this column represents a restriction, 
+    returns a value from the Regulation enum.
     '''
     if not cell or pd.isna(cell) or cell.isspace() or cell.lower().strip() == 'n/a':
         return Regulation.NO_DATA
@@ -108,25 +109,25 @@ def get_regulation(cell: str, is_restriction: bool) -> Regulation:
 
     return Regulation.CONDITIONAL
 
-def convert_to_regulations(gun_laws_row: pd.Series) -> None:
+def convert_to_regulations(row: pd.Series) -> None:
     '''
-    Converts regulation-related cells in a given row from gun_laws_df to Regulation enum values.
+    Converts regulation-related cells in a given row to Regulation enum values.
     '''
     for column_name in GunLawsColumnNames:
         if column_name is GunLawsColumnNames.COUNTRY:
             continue
         is_restriction = column_name is GunLawsColumnNames.GOOD_REASON
-        gun_laws_row[column_name.value] = get_regulation(gun_laws_row[column_name.value], is_restriction)
+        row[column_name.value] = get_regulation(row[column_name.value], is_restriction)
 
-gun_laws_df.apply(convert_to_regulations, axis=1)
+merged_df.apply(convert_to_regulations, axis=1)
 
-def get_mean_regulation(gun_laws_row: pd.Series) -> float:
+def get_mean_regulation(row: pd.Series) -> float:
     '''
     Calculates the mean regulation for row.
     '''
-    return mean([gun_laws_row[column_name.value].value for column_name in GunLawsColumnNames 
-        if column_name is not GunLawsColumnNames.COUNTRY and gun_laws_row[column_name.value] is not Regulation.NO_DATA])
+    return mean([row[column_name.value].value for column_name in GunLawsColumnNames 
+        if column_name is not GunLawsColumnNames.COUNTRY and row[column_name.value] is not Regulation.NO_DATA])
 
-gun_laws_df['Summary Regulation'] = gun_laws_df.apply(get_mean_regulation, axis=1)
+merged_df['Summary Regulation'] = merged_df.apply(get_mean_regulation, axis=1)
 
-print(gun_laws_df)
+print(merged_df.to_string())
