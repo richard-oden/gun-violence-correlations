@@ -80,7 +80,7 @@ class Regulation(enum.Enum):
 
 def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Regulation:
     '''
-    Given a cell and a bool indicating whether or not this column represents a restriction, 
+    Given a row, column name, and a bool indicating whether or not this column represents a restriction, 
     returns a value from the Regulation enum.
     '''
 
