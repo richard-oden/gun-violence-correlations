@@ -1,9 +1,8 @@
 import enum
-from lib2to3.pytree import convert
-from operator import is_
 import os
 import pandas as pd
 from statistics import mean
+from enums.Regulations import Regulation
 
 # Create gun deaths dataframe from Small Arms Survey excel document.
 # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
@@ -69,14 +68,6 @@ def get_country_name(gun_laws_row: pd.Series) -> str | None:
 gun_laws_df[GunLawsColumnNames.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1)
 
 merged_df = pd.merge(gun_deaths_df, gun_laws_df, how='inner', on=GunLawsColumnNames.COUNTRY.value)
-
-class Regulation(enum.Enum):
-    NO_DATA = -1
-    HIGHLY_REGULATED = 0
-    MOSTLY_REGULATED = 1
-    CONDITIONAL = 2
-    MOSTLY_UNREGULATED = 3
-    HIGHLY_UNREGULATED = 4
 
 def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Regulation:
     '''
