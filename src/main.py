@@ -1,4 +1,6 @@
 import enum
+from lib2to3.pytree import convert
+from operator import is_
 import os
 import pandas as pd
 from statistics import mean
@@ -76,11 +78,14 @@ class Regulation(enum.Enum):
     MOSTLY_UNREGULATED = 3
     HIGHLY_UNREGULATED = 4
 
-def get_regulation(cell: str, is_restriction: bool) -> Regulation:
+def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Regulation:
     '''
     Given a cell and a bool indicating whether or not this column represents a restriction, 
     returns a value from the Regulation enum.
     '''
+
+    cell = row[column_name]
+
     if not cell or pd.isna(cell) or cell.isspace() or cell.lower().strip() == 'n/a':
         return Regulation.NO_DATA
 
@@ -109,19 +114,17 @@ def get_regulation(cell: str, is_restriction: bool) -> Regulation:
 
     return Regulation.CONDITIONAL
 
-def convert_to_regulations(row: pd.Series) -> None:
+def convert_to_regulations(df: pd.DataFrame) -> None:
     '''
-    Converts regulation-related cells in a given row to Regulation enum values.
+    Converts the cells in the given data frame to Regulation enum values where applicable.
     '''
     for column_name in GunLawsColumnNames:
         if column_name is GunLawsColumnNames.COUNTRY:
             continue
         is_restriction = column_name is GunLawsColumnNames.GOOD_REASON
-        row[column_name.value] = get_regulation(row[column_name.value], is_restriction)
+        merged_df[column_name.value] = merged_df.apply(get_regulation, axis=1, args=(column_name.value, is_restriction))
 
-merged_df.apply(convert_to_regulations, axis=1)
-
-print(merged_df)
+convert_to_regulations(merged_df)
 
 def get_mean_regulation(row: pd.Series) -> float:
     '''
@@ -132,4 +135,4 @@ def get_mean_regulation(row: pd.Series) -> float:
 
 merged_df['Summary Regulation'] = merged_df.apply(get_mean_regulation, axis=1)
 
-print(merged_df.to_string())
+print(merged_df)
