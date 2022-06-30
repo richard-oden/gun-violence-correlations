@@ -2,27 +2,30 @@ import os
 import pandas as pd
 from enums.ColumnName import ColumnName, REGULATION_COLUMN_NAMES
 from enums.Regulation import Regulation
+from statistics import mean
 
 
 def get_gun_deaths_df() -> pd.DataFrame:
     '''
-    Imports Small-Arms-Survey-DB-violent-deaths.xlsx and parses as a dataframe.
+    Imports Small-Arms-Survey-DB-violent-deaths.xlsx and parses as a `DataFrame`.
 
     Returns
     ---
-    DataFrame object representing Small-Arms-Survey-DB-violent-deaths.xlsx
+    `DataFrame` object representing Small-Arms-Survey-DB-violent-deaths.xlsx
     '''
     return pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="D, AI", skiprows=[0, 1])
 
+
 def get_gun_laws_df() -> pd.DataFrame:
     '''
-    Imports gun laws by nation table from wikipedia and parses as a dataframe.
+    Imports gun laws by nation table from wikipedia and parses as a `DataFrame`.
 
     Returns
     ---
-    DataFrame object representing gun laws by nation table
+    `DataFrame` object representing gun laws by nation table
     '''
     return pd.read_html('https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation', match='Gun laws worldwide')[0]
+
 
 def get_country_name(gun_laws_row: pd.Series, gun_deaths_df: pd.DataFrame) -> str | None:
     '''
@@ -31,20 +34,31 @@ def get_country_name(gun_laws_row: pd.Series, gun_deaths_df: pd.DataFrame) -> st
 
     Parameters
     ---
-    gun_laws_row : Series representing a row from gun_laws_df.
-    gun_deaths_df : DataFrame of gun deaths by country.
+    `gun_laws_row` : Series representing a row from gun_laws_df.
+    `gun_deaths_df` : DataFrame of gun deaths by country.
 
     Returns
     ---
-    str representing the value of the Country cell from gun_deaths_df, or None if no country is found.
+    `str` representing the value of the Country cell from `gun_deaths_df`, or `None` if no country is found.
     '''
     return next((country_name for country_name in gun_deaths_df[ColumnName.COUNTRY.value].tolist() 
         if country_name.lower().strip() in gun_laws_row[ColumnName.COUNTRY.value].lower()), None)
 
+
 def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Regulation:
     '''
     Given a row, column name, and a bool indicating whether or not this column represents a restriction, 
-    returns a value from the Regulation enum.
+    returns a value from the `Regulation` enum.
+
+    Parameters
+    ---
+    `row` : `Series` representing a row from a `DataFrame`
+    `column_name` : `str` name of the column to examine within `row`
+    `is_restriction` : `bool` indicating whether or not this column represents a restriction
+
+    Returns
+    ---
+    `Regulation` enum value
     '''
 
     cell = row[column_name]
@@ -76,3 +90,92 @@ def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Re
         return Regulation.MOSTLY_REGULATED if is_restriction else Regulation.MOSTLY_UNREGULATED
 
     return Regulation.CONDITIONAL
+
+
+def convert_to_regulations(df: pd.DataFrame) -> None:
+    '''
+    Modifies the cells in the given `DataFrame` to `Regulation` enum values where applicable.
+
+    Parameters
+    ---
+    `df` : `DataFrame` which will have its cell values converted to `Regulation` enum values
+    '''
+    for column_name in REGULATION_COLUMN_NAMES:
+        is_restriction = column_name is ColumnName.GOOD_REASON
+        df[column_name.value] = df.apply(get_regulation, axis=1, args=(column_name.value, is_restriction))
+
+
+def get_mean_regulation(row: pd.Series) -> float:
+    '''
+    Calculates the mean regulation for row.
+
+    Parameters
+    ---
+    `row` : `Series` representing a row from a `DataFrame` object
+
+    Returns
+    ---
+    `float` representing the mean `Regulation` of the row.
+    '''
+    return mean([row[column_name.value].value for column_name in REGULATION_COLUMN_NAMES 
+        if row[column_name.value] is not Regulation.NO_DATA])
+
+def get_cleaned_data() -> pd.DataFrame:
+    '''
+    Retrieves and cleans data regarding gun legislation and gun-releated deaths and returns 
+    the result as a `DataFrame`.
+
+    Returns
+    ---
+    `DataFrame` representing gun legislation and gun-related death data by country.
+    '''
+    # Create gun deaths dataframe from Small Arms Survey excel document.
+    # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
+    gun_deaths_df = get_gun_deaths_df()
+
+    # Rename columns for readability.
+    gun_deaths_df.rename(columns={
+        'Unnamed: 3': ColumnName.COUNTRY.value,
+        'Rate.3': ColumnName.DEATH_RATE.value
+    }, inplace=True)
+
+    # Drop rows with no country.
+    gun_deaths_df.dropna(subset=[ColumnName.COUNTRY.value], inplace=True)
+
+    # Create gun laws dataframe from wikipedia article.
+    gun_laws_df = get_gun_laws_df()
+
+    # Convert MultiIndex to single Index.
+    gun_laws_df = gun_laws_df.droplevel(level=[0, 2], axis=1)
+
+    # Drop unwanted columns and rename remaining.
+    gun_laws_df.drop(['Magazine capacity limits[N 1]', 'Max penalty (years)[2]'], axis=1, inplace=True)
+    gun_laws_df.rename(columns={
+        'Region': ColumnName.COUNTRY.value,
+        'Good reason required?[3]': ColumnName.GOOD_REASON.value,
+        'Personal protection': ColumnName.PERSONAL_PROTECTION.value,
+        'Long guns (exc. semi- and full-auto)[4]': ColumnName.LONG_GUNS.value,
+        'Handguns[5]': ColumnName.HANDGUNS.value,
+        'Semi-automatic rifles': ColumnName.SEMIAUTOMATIC.value,
+        'Fully automatic firearms[6]': ColumnName.FULLY_AUTOMATIC.value,
+        'Open carry[7]': ColumnName.OPEN_CARRY.value,
+        'Concealed carry[8]': ColumnName.CONCEALED_CARRY.value,
+        'Free of registration[1]': ColumnName.FREE_OF_REGISTRATION.value
+    }, inplace=True)
+
+    # Drop rows that represent subheadings.
+    gun_laws_df = gun_laws_df[gun_laws_df[ColumnName.COUNTRY.value] != 'Region']
+
+    # Rename countries in gun laws dataframe so that they match countries in gun deaths dataframe.
+    gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
+
+    # Merge dataframe, dropping rows that do not have a share a country name.
+    merged_df = pd.merge(gun_deaths_df, gun_laws_df, how='inner', on=ColumnName.COUNTRY.value)
+
+    # Convert applicable cells in merged dataframe to Regulation enum values.
+    convert_to_regulations(merged_df)
+
+    # Add overall regulation column to merged dataframe 
+    merged_df[ColumnName.OVERALL_REGULATION.value] = merged_df.apply(get_mean_regulation, axis=1)
+
+    return merged_df
