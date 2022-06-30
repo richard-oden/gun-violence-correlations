@@ -1,6 +1,6 @@
 import enum
 
-class ColumnNames(enum.Enum):
+class ColumnName(enum.Enum):
     '''
     Represents column names used by dataframes.
     '''
@@ -17,14 +17,14 @@ class ColumnNames(enum.Enum):
     DEATH_RATE = 'Death Rate by Firearm per 100k Citizens'
     OVERALL_REGULATION = 'Overall Regulation Score'
 
-regulation_column_names = [
-    ColumnNames.GOOD_REASON,
-    ColumnNames.PERSONAL_PROTECTION,
-    ColumnNames.LONG_GUNS,
-    ColumnNames.HANDGUNS,
-    ColumnNames.SEMIAUTOMATIC,
-    ColumnNames.FULLY_AUTOMATIC,
-    ColumnNames.OPEN_CARRY,
-    ColumnNames.CONCEALED_CARRY,
-    ColumnNames.FREE_OF_REGISTRATION
+REGULATION_COLUMN_NAMES = [
+    ColumnName.GOOD_REASON,
+    ColumnName.PERSONAL_PROTECTION,
+    ColumnName.LONG_GUNS,
+    ColumnName.HANDGUNS,
+    ColumnName.SEMIAUTOMATIC,
+    ColumnName.FULLY_AUTOMATIC,
+    ColumnName.OPEN_CARRY,
+    ColumnName.CONCEALED_CARRY,
+    ColumnName.FREE_OF_REGISTRATION
 ]
