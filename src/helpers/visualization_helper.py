@@ -20,19 +20,14 @@ def create_plot(df: pd.DataFrame):
     Creates bokeh `Figure` object using the supplied `DataFrame` and displays it. 
     '''
     column_data_source = ColumnDataSource(df)
-    fig = figure(plot_width=1400, x_range=list(df[ColumnName.COUNTRY.value].unique()))
-    fig.circle(x=ColumnName.COUNTRY.value, y=ColumnName.DEATH_RATE.value,
+    fig = figure(plot_width=1000)
+    fig.circle(x=ColumnName.OVERALL_REGULATION.value, y=ColumnName.DEATH_RATE.value,
          source=column_data_source,
-         size=10, color='green')
-    fig.title.text = 'Firearm-Related Death Rate per 100,000 Citizens by Country'
-    fig.xaxis.axis_label = ColumnName.COUNTRY.value
-    fig.yaxis.axis_label = ColumnName.DEATH_RATE.value
-    fig.xaxis.major_label_orientation = 'vertical'
+         size=5, color='red')
+    fig.title.text = 'Firearm-Related Death Rate vs Overall Firearm Regulation'
 
     hover_tool = HoverTool()
-    hover_tool.tooltips = [
-        (ColumnName.OVERALL_REGULATION.value, f'@{{{ColumnName.OVERALL_REGULATION.value}}}')
-    ]
+    hover_tool.tooltips = [(column_name.value, f'@{{{column_name.value}}}') for column_name in ColumnName]
     fig.add_tools(hover_tool)
 
     show(fig)

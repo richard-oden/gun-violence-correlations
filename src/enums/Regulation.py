@@ -6,8 +6,8 @@ class Regulation(enum.Enum):
     Backing value is an int, which may be used to calulcate average regulation.
     '''
     NO_DATA = -1
-    HIGHLY_REGULATED = 0
-    MOSTLY_REGULATED = 1
+    HIGHLY_REGULATED = 4
+    MOSTLY_REGULATED = 3
     CONDITIONAL = 2
-    MOSTLY_UNREGULATED = 3
-    HIGHLY_UNREGULATED = 4
+    MOSTLY_UNREGULATED = 1
+    HIGHLY_UNREGULATED = 0
