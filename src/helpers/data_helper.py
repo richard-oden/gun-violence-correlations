@@ -64,32 +64,32 @@ def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Re
     cell = row[column_name]
 
     if not cell or pd.isna(cell) or cell.isspace() or cell.lower().strip() == 'n/a':
-        return Regulation.NO_DATA
+        return Regulation.NO_DATA.value
 
     lc_cell = cell.lower().strip()
 
     if 'total ban' in lc_cell:
-        return Regulation.HIGHLY_REGULATED
+        return Regulation.HIGHLY_REGULATED.value
 
     if lc_cell == 'no':
-        return Regulation.HIGHLY_UNREGULATED if is_restriction else Regulation.HIGHLY_REGULATED
+        return Regulation.HIGHLY_UNREGULATED.value if is_restriction else Regulation.HIGHLY_REGULATED.value
 
     if 'rarely issued' in lc_cell or 'rarely granted' in lc_cell:
-        return Regulation.MOSTLY_REGULATED
+        return Regulation.MOSTLY_REGULATED.value
 
     if lc_cell.startswith('no'):
-        return Regulation.MOSTLY_UNREGULATED if is_restriction else Regulation.MOSTLY_REGULATED
+        return Regulation.MOSTLY_UNREGULATED.value if is_restriction else Regulation.MOSTLY_REGULATED.value
 
     if lc_cell == 'yes':
-        return Regulation.HIGHLY_REGULATED if is_restriction else Regulation.HIGHLY_UNREGULATED
+        return Regulation.HIGHLY_REGULATED.value if is_restriction else Regulation.HIGHLY_UNREGULATED.value
 
     if lc_cell.startswith('yes') and 'shall issue' in lc_cell:
-        return Regulation.HIGHLY_UNREGULATED
+        return Regulation.HIGHLY_UNREGULATED.value
 
     if lc_cell.startswith('yes'):
-        return Regulation.MOSTLY_REGULATED if is_restriction else Regulation.MOSTLY_UNREGULATED
+        return Regulation.MOSTLY_REGULATED.value if is_restriction else Regulation.MOSTLY_UNREGULATED.value
 
-    return Regulation.CONDITIONAL
+    return Regulation.CONDITIONAL.value
 
 
 def convert_to_regulations(df: pd.DataFrame) -> None:
@@ -117,8 +117,8 @@ def get_mean_regulation(row: pd.Series) -> float:
     ---
     `float` representing the mean `Regulation` of the row.
     '''
-    return mean([row[column_name.value].value for column_name in REGULATION_COLUMN_NAMES 
-        if row[column_name.value] is not Regulation.NO_DATA])
+    return mean([row[column_name.value] for column_name in REGULATION_COLUMN_NAMES 
+        if row[column_name.value] > Regulation.NO_DATA.value])
 
 def get_cleaned_data() -> pd.DataFrame:
     '''
