@@ -34,9 +34,13 @@ def create_regression_line(df: pd.DataFrame) -> list:
     intercept=par[0][1]
     return [slope*x + intercept for x in df[ColumnName.OVERALL_REGULATION.value]]
 
-def create_plot(df: pd.DataFrame):
+def create_plot(df: pd.DataFrame) -> None:
     '''
-    Creates bokeh `Figure` object using the supplied `DataFrame` and displays it. 
+    Creates bokeh `Figure` object using the supplied `DataFrame` and displays it.
+
+    Parameters
+    ---
+    `df` : `DataFrame` object
     '''
     column_data_source = ColumnDataSource(df)
     fig = figure(plot_width=1000)

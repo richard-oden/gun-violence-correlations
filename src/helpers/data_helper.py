@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import tabula
 from enums.ColumnName import ColumnName, REGULATION_COLUMN_NAMES
 from enums.Regulation import Regulation
 from statistics import mean
@@ -14,6 +15,17 @@ def get_gun_deaths_df() -> pd.DataFrame:
     `DataFrame` object representing Small-Arms-Survey-DB-violent-deaths.xlsx
     '''
     return pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="D, AI", skiprows=[0, 1])
+
+
+def get_gun_holdings_df() -> pd.DataFrame:
+    '''
+    Imports SAS-BP-Civilian-held-firearms-annexe.pdf and parses as a `DataFrame`.
+
+    Returns
+    ---
+    `DataFrame` object representing SAS-BP-Civilian-held-firearms-annexe.pdf
+    '''
+    return pd.concat(tabula.read_pdf(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.pdf'), pages='all'))
 
 
 def get_gun_laws_df() -> pd.DataFrame:
@@ -141,6 +153,10 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Drop rows with no country.
     gun_deaths_df.dropna(subset=[ColumnName.COUNTRY.value], inplace=True)
+
+    # Create gun holdings dataframe from Small Arms Survey pdf.
+    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.pdf
+    gun_holdings_df = get_gun_holdings_df()
 
     # Create gun laws dataframe from wikipedia article.
     gun_laws_df = get_gun_laws_df()
