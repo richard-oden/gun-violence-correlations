@@ -158,6 +158,13 @@ def get_cleaned_data() -> pd.DataFrame:
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.pdf
     gun_holdings_df = get_gun_holdings_df()
 
+    # Drop unwanted rows/columns from gun holdings dataframe.
+    gun_holdings_df.drop(range(4), inplace=True)
+    gun_holdings_df = gun_holdings_df.loc[:, gun_holdings_df.columns.isin(['Country.1', 'Estimate of.1'])]
+    gun_holdings_df.dropna(inplace=True)
+
+    print(gun_holdings_df.columns)
+
     # Create gun laws dataframe from wikipedia article.
     gun_laws_df = get_gun_laws_df()
 
