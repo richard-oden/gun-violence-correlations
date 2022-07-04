@@ -17,7 +17,7 @@ def get_gun_deaths_df() -> pd.DataFrame:
     return pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="D, AI", skiprows=[0, 1])
 
 
-def get_gun_holdings_df() -> pd.DataFrame:
+def get_civilian_guns_df() -> pd.DataFrame:
     '''
     Imports SAS-BP-Civilian-held-firearms-annexe.pdf and parses as a `DataFrame`.
 
@@ -156,20 +156,20 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Create gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.pdf
-    gun_holdings_df = get_gun_holdings_df()
+    civilian_guns_df = get_civilian_guns_df()
 
     # Drop unwanted rows/columns from gun holdings dataframe.
-    gun_holdings_df.drop(range(4), inplace=True)
-    gun_holdings_df = gun_holdings_df.loc[:, gun_holdings_df.columns.isin(['Country.1', 'Estimate of.1'])]
-    gun_holdings_df.dropna(inplace=True)
+    civilian_guns_df.drop(range(4), inplace=True)
+    civilian_guns_df = civilian_guns_df.loc[:, civilian_guns_df.columns.isin(['Country.1', 'Estimate of.1'])]
+    civilian_guns_df.dropna(inplace=True)
 
     # Rename columns for readability.
-    gun_holdings_df.rename(columns={
+    civilian_guns_df.rename(columns={
         'Country.1': ColumnName.COUNTRY.value,
         'Estimate of.1': ColumnName.CIVILIAN_FIREARMS.value
     }, inplace=True)
 
-    print(gun_holdings_df.sample(30))
+    print(civilian_guns_df.sample(30))
 
     # Create gun laws dataframe from wikipedia article.
     gun_laws_df = get_gun_laws_df()
@@ -198,8 +198,11 @@ def get_cleaned_data() -> pd.DataFrame:
     # Rename countries in gun laws dataframe so that they match countries in gun deaths dataframe.
     gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
 
-    # Merge dataframe, dropping rows that do not have a share a country name.
+    # Merge dataframes, dropping rows that do not have a share a country name.
     merged_df = pd.merge(gun_deaths_df, gun_laws_df, how='inner', on=ColumnName.COUNTRY.value)
+    merged_df = pd.merge(merged_df, civilian_guns_df, how='inner', on=ColumnName.COUNTRY.value)
+
+    print(merged_df)
 
     # Convert applicable cells in merged dataframe to Regulation enum values.
     convert_to_regulations(merged_df)
