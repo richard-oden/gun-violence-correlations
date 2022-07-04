@@ -28,6 +28,28 @@ def get_civilian_guns_df() -> pd.DataFrame:
     return pd.concat(tabula.read_pdf(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.pdf'), pages='all'))
 
 
+def get_military_guns_df() -> pd.DataFrame:
+    '''
+    Imports SAS-BP-Military-owned-firearms-annexe.pdf and parses as a `DataFrame`.
+
+    Returns
+    ---
+    `DataFrame` object representing SAS-BP-Military-owned-firearms-annexe.pdf
+    '''
+    return pd.concat(tabula.read_pdf(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.pdf'), pages='all'))
+
+
+def get_police_guns_df() -> pd.DataFrame:
+    '''
+    Imports SAS-BP-Law-enforcement-firearms-annexe.pdf and parses as a `DataFrame`.
+
+    Returns
+    ---
+    `DataFrame` object representing SAS-BP-Law-enforcement-firearms-annexe.pdf
+    '''
+    return pd.concat(tabula.read_pdf(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.pdf'), pages='all'))
+
+
 def get_gun_laws_df() -> pd.DataFrame:
     '''
     Imports gun laws by nation table from wikipedia and parses as a `DataFrame`.
