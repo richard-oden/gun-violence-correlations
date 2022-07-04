@@ -14,7 +14,8 @@ class ColumnName(enum.Enum):
     OPEN_CARRY = 'Open Carry Permitted'
     CONCEALED_CARRY = 'Concealed Carry Permitted'
     FREE_OF_REGISTRATION = 'Free of Registration'
-    DEATH_RATE = 'Death Rate by Firearm per 100k Citizens'
+    DEATH_RATE = 'Death Rate by Firearm per 100k Persons'
+    CIVILIAN_FIREARMS = 'Estimate of Civilian Firearms per 100 Persons'
     OVERALL_REGULATION = 'Overall Regulation Score'
 
 REGULATION_COLUMN_NAMES = [

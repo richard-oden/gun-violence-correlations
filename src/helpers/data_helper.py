@@ -163,7 +163,13 @@ def get_cleaned_data() -> pd.DataFrame:
     gun_holdings_df = gun_holdings_df.loc[:, gun_holdings_df.columns.isin(['Country.1', 'Estimate of.1'])]
     gun_holdings_df.dropna(inplace=True)
 
-    print(gun_holdings_df.columns)
+    # Rename columns for readability.
+    gun_holdings_df.rename(columns={
+        'Country.1': ColumnName.COUNTRY.value,
+        'Estimate of.1': ColumnName.CIVILIAN_FIREARMS.value
+    }, inplace=True)
+
+    print(gun_holdings_df.sample(30))
 
     # Create gun laws dataframe from wikipedia article.
     gun_laws_df = get_gun_laws_df()
