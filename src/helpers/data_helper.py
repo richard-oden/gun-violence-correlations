@@ -25,7 +25,7 @@ def get_civilian_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Civilian-held-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.xlsx'))
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.xlsx'), usecols="B, I", skiprows=[1, 2])
 
 
 def get_military_guns_df() -> pd.DataFrame:
@@ -186,15 +186,17 @@ def get_cleaned_data() -> pd.DataFrame:
     civilian_guns_df = get_civilian_guns_df()
 
     # Drop unwanted rows/columns from dataframe.
-    civilian_guns_df.drop(range(4), inplace=True)
-    civilian_guns_df = civilian_guns_df.loc[:, civilian_guns_df.columns.isin(['Country.1', 'Estimate of.1'])]
     civilian_guns_df.dropna(inplace=True)
+
+    print(civilian_guns_df)
 
     # Rename columns for readability.
     civilian_guns_df.rename(columns={
-        'Country.1': ColumnName.COUNTRY.value,
-        'Estimate of.1': ColumnName.CIVILIAN_FIREARMS.value
+        civilian_guns_df.columns[0]: ColumnName.COUNTRY.value,
+        civilian_guns_df.columns[1]: ColumnName.CIVILIAN_FIREARMS.value
     }, inplace=True)
+
+    print(civilian_guns_df)
 
     # Create military gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Military-owned-firearms-annexe.xlsx
@@ -219,7 +221,6 @@ def get_cleaned_data() -> pd.DataFrame:
     # Create police gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Law-enforcement-firearms-annexe.xlsx
     police_guns_df = get_police_guns_df()
-    #clean_police_guns_df(police_guns_df)
 
     # Create gun laws dataframe from wikipedia article.
     # https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation
