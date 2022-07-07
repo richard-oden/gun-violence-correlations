@@ -16,6 +16,8 @@ class ColumnName(enum.Enum):
     FREE_OF_REGISTRATION = 'Free of Registration'
     DEATH_RATE = 'Death Rate by Firearm per 100k Persons'
     CIVILIAN_FIREARMS = 'Estimate of Civilian Firearms per 100 Persons'
+    MILITARY_FIREARMS = 'Estimate of Military Firearms per 100 Persons'
+    POLICE_FIREARMS = 'Estimate of Law Enforcement Firearms per 100 Persons'
     OVERALL_REGULATION = 'Overall Regulation Score'
 
 REGULATION_COLUMN_NAMES = [
