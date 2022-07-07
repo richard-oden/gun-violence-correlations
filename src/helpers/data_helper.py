@@ -46,7 +46,7 @@ def get_police_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Law-enforcement-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.xlsx'))
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.xlsx'), usecols="B, E, H", skiprows=range(5))
 
 
 def get_gun_laws_df() -> pd.DataFrame:
@@ -205,12 +205,8 @@ def get_cleaned_data() -> pd.DataFrame:
     military_guns_df['Firearms in sub-'] = pd.to_numeric(military_guns_df['Firearms in sub-'], errors='coerce')
     military_guns_df.dropna(inplace=True)
 
-    print(military_guns_df.sample(30))
-
     # Compute guns per 100 persons.
     military_guns_df[ColumnName.MILITARY_FIREARMS.value] = military_guns_df.apply(get_guns_per_100_persons, args=('Population', 'Firearms in sub-'), axis=1)
-
-    print(military_guns_df)
 
     # Drop columns used for calculation.
     military_guns_df.drop(['Population', 'Firearms in sub-'], axis=1, inplace=True)
@@ -223,6 +219,24 @@ def get_cleaned_data() -> pd.DataFrame:
     # Create police gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Law-enforcement-firearms-annexe.xlsx
     police_guns_df = get_police_guns_df()
+
+    # Convert population and firearm counts to int, then drop any invalid rows.
+    police_guns_df['Unnamed: 4'] = pd.to_numeric(police_guns_df['Unnamed: 4'], errors='coerce')
+    police_guns_df['Unnamed: 7'] = pd.to_numeric(police_guns_df['Unnamed: 7'], errors='coerce')
+    police_guns_df.dropna(inplace=True)
+
+    # Compute guns per 100 persons.
+    police_guns_df[ColumnName.POLICE_FIREARMS.value] = police_guns_df.apply(get_guns_per_100_persons, args=('Unnamed: 4', 'Unnamed: 7'), axis=1)
+
+    # Drop columns used for calculation.
+    police_guns_df.drop(['Unnamed: 4', 'Unnamed: 7'], axis=1, inplace=True)
+
+    # Rename columns for readability.
+    police_guns_df.rename(columns={
+        'Unnamed: 1': ColumnName.COUNTRY.value,
+    }, inplace=True)
+
+    print(police_guns_df)
 
     # Create gun laws dataframe from wikipedia article.
     # https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation
