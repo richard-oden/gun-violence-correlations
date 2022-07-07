@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import tabula
 from enums.ColumnName import ColumnName, REGULATION_COLUMN_NAMES
 from enums.Regulation import Regulation
 from statistics import mean
@@ -36,7 +35,7 @@ def get_military_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Military-owned-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.xlsx'))
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.xlsx'), usecols="B, E, I")
 
 
 def get_police_guns_df() -> pd.DataFrame:
@@ -156,7 +155,7 @@ def get_mean_regulation(row: pd.Series) -> float:
 
 
 def get_guns_per_100_persons(row: pd.Series, population_col_name: str, guns_col_name: str) -> float:
-    return (int(row[guns_col_name].replace(',', '')) / int(row[population_col_name].replace(',', ''))) * 100
+    return (int(row[guns_col_name]) / int(row[population_col_name])) * 100
 
 
 def get_cleaned_data() -> pd.DataFrame:
@@ -188,30 +187,33 @@ def get_cleaned_data() -> pd.DataFrame:
     # Drop unwanted rows/columns from dataframe.
     civilian_guns_df.dropna(inplace=True)
 
-    print(civilian_guns_df)
-
     # Rename columns for readability.
     civilian_guns_df.rename(columns={
         civilian_guns_df.columns[0]: ColumnName.COUNTRY.value,
         civilian_guns_df.columns[1]: ColumnName.CIVILIAN_FIREARMS.value
     }, inplace=True)
 
-    print(civilian_guns_df)
-
     # Create military gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Military-owned-firearms-annexe.xlsx
     military_guns_df = get_military_guns_df()
     
     # Drop unwanted rows/columns from dataframe.
-    military_guns_df.drop(range(3), inplace=True)
-    military_guns_df = military_guns_df.loc[:, military_guns_df.columns.isin(['Country.1', 'Population', 'Total military'])]
     military_guns_df.dropna(inplace=True)
 
+    # Convert population and firearm counts to int, then drop any invalid rows.
+    military_guns_df['Population'] = pd.to_numeric(military_guns_df['Population'], errors='coerce')
+    military_guns_df['Firearms in sub-'] = pd.to_numeric(military_guns_df['Firearms in sub-'], errors='coerce')
+    military_guns_df.dropna(inplace=True)
+
+    print(military_guns_df.sample(30))
+
     # Compute guns per 100 persons.
-    military_guns_df[ColumnName.MILITARY_FIREARMS.value] = military_guns_df.apply(get_guns_per_100_persons, args=('Population', 'Total military'), axis=1)
+    military_guns_df[ColumnName.MILITARY_FIREARMS.value] = military_guns_df.apply(get_guns_per_100_persons, args=('Population', 'Firearms in sub-'), axis=1)
+
+    print(military_guns_df)
 
     # Drop columns used for calculation.
-    military_guns_df.drop(['Total military', 'Population'], axis=1, inplace=True)
+    military_guns_df.drop(['Population', 'Firearms in sub-'], axis=1, inplace=True)
 
     # Rename columns for readability.
     military_guns_df.rename(columns={
