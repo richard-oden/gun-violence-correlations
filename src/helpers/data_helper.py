@@ -236,8 +236,6 @@ def get_cleaned_data() -> pd.DataFrame:
         'Unnamed: 1': ColumnName.COUNTRY.value,
     }, inplace=True)
 
-    print(police_guns_df)
-
     # Create gun laws dataframe from wikipedia article.
     # https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation
     gun_laws_df = get_gun_laws_df()
@@ -267,8 +265,10 @@ def get_cleaned_data() -> pd.DataFrame:
     gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
 
     # Merge dataframes, dropping rows that do not have a share a country name.
-    merged_df = pd.merge(gun_deaths_df, gun_laws_df, how='inner', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, civilian_guns_df, how='inner', on=ColumnName.COUNTRY.value)
+    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='left', on=ColumnName.COUNTRY.value)
+    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY.value)
+    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY.value)
+    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY.value)
 
     print(merged_df)
 
