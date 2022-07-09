@@ -281,6 +281,4 @@ def get_cleaned_data() -> pd.DataFrame:
     merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY.value)
     merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY.value)
 
-    print(merged_df.dtypes)
-
     return merged_df

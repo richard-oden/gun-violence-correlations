@@ -53,7 +53,7 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> Non
     column_data_source = ColumnDataSource(relevant_df)
     fig = figure(plot_width=1000)
     fig.circle(x=x_column_name, y=y_column_name,
-        source=column_data_source, size=8, color='black')
+        source=column_data_source, size=8, color='black', name='countries')
     fig.line(x=relevant_df[x_column_name], y=create_regression_line(relevant_df, x_column_name, y_column_name),
         color='red')
 
@@ -63,8 +63,7 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> Non
 
     tooltip_columns = [ColumnName.COUNTRY, *TEXT_COLUMN_NAMES, ColumnName.CIVILIAN_FIREARMS, ColumnName.MILITARY_FIREARMS, ColumnName.POLICE_FIREARMS]
 
-    hover_tool = HoverTool()
-    hover_tool.tooltips = [(column_name.value, f'@{{{column_name.value}}}') for column_name in tooltip_columns]
+    hover_tool = HoverTool(tooltips=[(column_name.value, f'@{{{column_name.value}}}') for column_name in tooltip_columns], names=['countries'])
     fig.add_tools(hover_tool)
 
     show(fig)
