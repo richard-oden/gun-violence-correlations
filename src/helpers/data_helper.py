@@ -194,6 +194,10 @@ def get_cleaned_data() -> pd.DataFrame:
         civilian_guns_df.columns[1]: ColumnName.CIVILIAN_FIREARMS.value
     }, inplace=True)
 
+    # Convert civilian gun ownership rate to float and drop invalid values.
+    civilian_guns_df[ColumnName.CIVILIAN_FIREARMS.value] = pd.to_numeric(civilian_guns_df[ColumnName.CIVILIAN_FIREARMS.value], errors='coerce')
+    civilian_guns_df.dropna(inplace=True)
+
     # Create military gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Military-owned-firearms-annexe.xlsx
     military_guns_df = get_military_guns_df()
@@ -277,6 +281,6 @@ def get_cleaned_data() -> pd.DataFrame:
     merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY.value)
     merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY.value)
 
-    print(merged_df.sample(30))
+    print(merged_df.dtypes)
 
     return merged_df
