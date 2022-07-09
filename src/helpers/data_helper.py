@@ -264,18 +264,18 @@ def get_cleaned_data() -> pd.DataFrame:
     # Rename countries in gun laws dataframe so that they match countries in gun deaths dataframe.
     gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
 
-    # Merge dataframes, dropping rows that do not have a share a country name.
-    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='left', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY.value)
-
-    print(merged_df)
-
     # Convert applicable cells in merged dataframe to Regulation enum values.
-    convert_to_regulations(merged_df)
+    convert_to_regulations(gun_laws_df)
 
     # Add overall regulation column to merged dataframe 
-    merged_df[ColumnName.OVERALL_REGULATION.value] = merged_df.apply(get_mean_regulation, axis=1)
+    gun_laws_df[ColumnName.OVERALL_REGULATION.value] = gun_laws_df.apply(get_mean_regulation, axis=1)
+
+    # Merge dataframes, dropping rows that do not have a share a country name.
+    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='inner', on=ColumnName.COUNTRY.value).fillna(-1)
+    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY.value).fillna(-1)
+    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY.value).fillna(-1)
+    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY.value).fillna(-1)
+
+    print(merged_df)
 
     return merged_df
