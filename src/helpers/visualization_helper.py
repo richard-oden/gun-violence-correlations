@@ -4,7 +4,7 @@ import pandas as pd
 from bokeh.plotting import figure, output_file, show
 from bokeh.models import ColumnDataSource
 from bokeh.models.tools import HoverTool
-from enums.ColumnName import ColumnName, REGULATION_COLUMN_NAMES
+from enums.ColumnName import ColumnName, TEXT_COLUMN_NAMES
 
 
 def initialize_output() -> None:
@@ -53,8 +53,10 @@ def create_plot(df: pd.DataFrame) -> None:
     fig.xaxis.axis_label = ColumnName.OVERALL_REGULATION.value
     fig.yaxis.axis_label = ColumnName.DEATH_RATE.value
 
+    tooltip_columns = [ColumnName.COUNTRY, *TEXT_COLUMN_NAMES, ColumnName.CIVILIAN_FIREARMS, ColumnName.MILITARY_FIREARMS, ColumnName.POLICE_FIREARMS]
+
     hover_tool = HoverTool()
-    hover_tool.tooltips = [(column_name.value, f'@{{{column_name.value}}}') for column_name in ColumnName]
+    hover_tool.tooltips = [(column_name.value, f'@{{{column_name.value}}}') for column_name in tooltip_columns]
     fig.add_tools(hover_tool)
 
     show(fig)
