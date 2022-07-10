@@ -1,21 +1,13 @@
 import os
+from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
-from bokeh.io import show
-from bokeh.plotting import figure, output_file, show
+from bokeh.layouts import column, row
+from bokeh.plotting import figure, output_file, curdoc
 from bokeh.models import ColumnDataSource, CustomJS, Select
 from bokeh.models.tools import HoverTool
-from enums.ColumnName import ColumnName, TEXT_COLUMN_NAMES
+from enums.ColumnName import REGULATION_COLUMN_NAMES, ColumnName, TEXT_COLUMN_NAMES
 
-
-def initialize_output() -> None:
-    '''
-    Defines the default output file for bokeh as `output/visualization.html`.
-    '''
-    if not os.path.exists('output'):
-        os.makedirs('output')
-
-    output_file(os.path.join('output', 'visualization.html'))
 
 def create_regression_line(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> list:
     '''
@@ -38,15 +30,20 @@ def create_regression_line(df: pd.DataFrame, x_column_name: str, y_column_name: 
 
     return [slope*x + intercept for x in df[x_column_name]]
 
-def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> None:
+
+def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> Figure:
     '''
-    Creates bokeh `Figure` object using the supplied `DataFrame` and displays it.
+    Creates bokeh `Figure` object using the supplied `DataFrame`.
 
     Parameters
     ---
     `df` : `DataFrame` object
     `x_column_name` : `str` representing the column to be plotted on the x-axis
     `y_column_name` : `str` representing the column to be plotted on the y-axis
+
+    Returns
+    ---
+    a `Figure` object representing the `DataFrame`.
     '''
     relevant_df = df.dropna(subset=[x_column_name, y_column_name]).drop(df[(df[x_column_name] == -1) | (df[y_column_name] == -1)].index)
 
@@ -66,4 +63,29 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> Non
     hover_tool = HoverTool(tooltips=[(column_name.value, f'@{{{column_name.value}}}') for column_name in tooltip_columns], names=['countries'])
     fig.add_tools(hover_tool)
 
-    show(fig)
+    return fig
+    
+
+def initialize_bokeh(df: pd.DataFrame):
+    selectable_columns = [column_name.value for column_name in [
+        ColumnName.DEATH_RATE, 
+        ColumnName.OVERALL_REGULATION,
+        *REGULATION_COLUMN_NAMES, 
+        ColumnName.CIVILIAN_FIREARMS, 
+        ColumnName.MILITARY_FIREARMS, 
+        ColumnName.POLICE_FIREARMS]]
+
+    x_select = Select(title='X-Axis Statistic', value=ColumnName.OVERALL_REGULATION.value, options=selectable_columns)
+    y_select = Select(title='Y-Axis Statistic', value=ColumnName.DEATH_RATE.value, options=selectable_columns)
+
+    controls = column(x_select, y_select, width=200)
+    layout = row(controls, create_plot(df, x_select.value, y_select.value))
+
+    #on_change callback functions must have the signature func(attr, old, new).
+    def update(attr, old, new):
+        layout.children[1] = create_plot(df, x_select.value, y_select.value)
+
+    [select.on_change('value', update) for select in [x_select, y_select]]
+
+    curdoc().add_root(layout)
+    curdoc().title = "Gun Violence Correlations"
