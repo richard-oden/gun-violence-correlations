@@ -45,7 +45,12 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> Fig
     ---
     a `Figure` object representing the `DataFrame`.
     '''
+
+    # Drop countries where x-axis or y-axis data could not be found.
     relevant_df = df.dropna(subset=[x_column_name, y_column_name]).drop(df[(df[x_column_name] == -1) | (df[y_column_name] == -1)].index)
+
+    # Fill cells where where data could not be found with human-friendly string for tooltips.
+    relevant_df = relevant_df.fillna('No data found').replace([-1], 'No data found')
 
     column_data_source = ColumnDataSource(relevant_df)
     fig = figure(plot_width=1000)
@@ -78,7 +83,7 @@ def initialize_bokeh(df: pd.DataFrame):
     x_select = Select(title='X-Axis Statistic', value=ColumnName.OVERALL_REGULATION.value, options=selectable_columns)
     y_select = Select(title='Y-Axis Statistic', value=ColumnName.DEATH_RATE.value, options=selectable_columns)
 
-    controls = column(x_select, y_select, width=200)
+    controls = column(x_select, y_select, width=400)
     layout = row(controls, create_plot(df, x_select.value, y_select.value))
 
     #on_change callback functions must have the signature func(attr, old, new).
