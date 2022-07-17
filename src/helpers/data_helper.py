@@ -62,24 +62,6 @@ def get_gun_laws_df() -> pd.DataFrame:
     return pd.read_html('https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation', match='Gun laws worldwide')[0]
 
 
-def get_country_name(gun_laws_row: pd.Series, gun_deaths_df: pd.DataFrame) -> str | None:
-    '''
-    If the Country in gun_laws_row is represented in gun_deaths_df, returns the value of the Country cell
-    from from gun_deaths_df. Otherwise returns None.
-
-    Parameters
-    ---
-    `gun_laws_row` : Series representing a row from gun_laws_df.
-    `gun_deaths_df` : DataFrame of gun deaths by country.
-
-    Returns
-    ---
-    `str` representing the value of the Country cell from `gun_deaths_df`, or `None` if no country is found.
-    '''
-    return next((country_name for country_name in gun_deaths_df[ColumnName.COUNTRY.value].tolist() 
-        if country_name.lower().strip() in gun_laws_row[ColumnName.COUNTRY.value].lower()), None)
-
-
 def get_country_code(row: pd.Series) -> str | None:
     '''
     Tries to find an alpha-3 code given `row.Country`.
@@ -95,7 +77,8 @@ def get_country_code(row: pd.Series) -> str | None:
     # remove anything in square brackets or parentheses before searching:
     
     try:
-        query = re.sub(r'(?:\[|\().*?(?:\]|\))', '', row[ColumnName.COUNTRY.value])
+        query = re.sub(r'\[.*?\]', '', row[ColumnName.COUNTRY.value])
+        query = re.sub(r'\(.*?\)', '', query)
         countries = pycountry.countries.search_fuzzy(query)
         
         if countries is None or len(countries) == 0:
@@ -295,13 +278,12 @@ def get_cleaned_data() -> pd.DataFrame:
     # Drop rows that represent subheadings.
     gun_laws_df = gun_laws_df[gun_laws_df[ColumnName.COUNTRY.value] != 'Region']
 
+    # Get country codes for gun laws dataframe.
     gun_laws_df[ColumnName.COUNTRY_CODE.value] = gun_laws_df.apply(get_country_code, axis=1)
     gun_laws_df.drop([ColumnName.COUNTRY.value], axis=1, inplace=True)
 
+    # Drop rows where no country code was found.
     gun_laws_df.dropna(subset=[ColumnName.COUNTRY_CODE.value], inplace=True)
-
-    # Rename countries in gun laws dataframe so that they match countries in gun deaths dataframe.
-    #gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
 
     # Add Regulation enum values to cells.
     convert_to_regulations(gun_laws_df)
@@ -315,6 +297,4 @@ def get_cleaned_data() -> pd.DataFrame:
     merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
     merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
 
-
-    print(merged_df.sample(30))
     return merged_df
