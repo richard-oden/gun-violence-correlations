@@ -13,7 +13,7 @@ def get_gun_deaths_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing Small-Arms-Survey-DB-violent-deaths.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="D, AI", skiprows=[0, 1])
+    return pd.read_excel(os.path.join('data', 'Small-Arms-Survey-DB-violent-deaths.xlsx'), usecols="C, D, AI", skiprows=[0, 1])
 
 
 def get_civilian_guns_df() -> pd.DataFrame:
@@ -24,7 +24,7 @@ def get_civilian_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Civilian-held-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.xlsx'), usecols="B, I", skiprows=[1, 2])
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.xlsx'), usecols="A, B, I", skiprows=[1, 2])
 
 
 def get_military_guns_df() -> pd.DataFrame:
@@ -35,7 +35,7 @@ def get_military_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Military-owned-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.xlsx'), usecols="B, E, I")
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.xlsx'), usecols="A, B, E, I")
 
 
 def get_police_guns_df() -> pd.DataFrame:
@@ -46,7 +46,7 @@ def get_police_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Law-enforcement-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.xlsx'), usecols="B, E, H", skiprows=range(5))
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.xlsx'), usecols="A, B, E, H", skiprows=range(5))
 
 
 def get_gun_laws_df() -> pd.DataFrame:
