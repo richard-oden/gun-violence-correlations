@@ -4,6 +4,7 @@ class ColumnName(enum.Enum):
     '''
     Represents column names used by dataframes.
     '''
+    COUNTRY_CODE = 'Country Code'
     COUNTRY = 'Country'
     GOOD_REASON = 'Good Reason Required (Score)'
     PERSONAL_PROTECTION = 'Personal Protection Permitted (Score)'
