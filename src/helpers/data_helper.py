@@ -1,5 +1,7 @@
 import os
+import re
 import pandas as pd
+import pycountry
 from enums.ColumnName import ColumnName, REGULATION_COLUMN_NAMES, TEXT_COLUMN_NAMES
 from enums.Regulation import Regulation
 from statistics import mean
@@ -24,7 +26,7 @@ def get_civilian_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Civilian-held-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.xlsx'), usecols="A, B, I", skiprows=[1, 2])
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Civilian-held-firearms-annexe.xlsx'), usecols="A, I", skiprows=[1, 2])
 
 
 def get_military_guns_df() -> pd.DataFrame:
@@ -35,7 +37,7 @@ def get_military_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Military-owned-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.xlsx'), usecols="A, B, E, I")
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Military-owned-firearms-annexe.xlsx'), usecols="A, E, I")
 
 
 def get_police_guns_df() -> pd.DataFrame:
@@ -46,7 +48,7 @@ def get_police_guns_df() -> pd.DataFrame:
     ---
     `DataFrame` object representing SAS-BP-Law-enforcement-firearms-annexe.xlsx
     '''
-    return pd.read_excel(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.xlsx'), usecols="A, B, E, H", skiprows=range(5))
+    return pd.read_excel(os.path.join('data', 'SAS-BP-Law-enforcement-firearms-annexe.xlsx'), usecols="A, E, H", skiprows=range(5))
 
 
 def get_gun_laws_df() -> pd.DataFrame:
@@ -76,6 +78,32 @@ def get_country_name(gun_laws_row: pd.Series, gun_deaths_df: pd.DataFrame) -> st
     '''
     return next((country_name for country_name in gun_deaths_df[ColumnName.COUNTRY.value].tolist() 
         if country_name.lower().strip() in gun_laws_row[ColumnName.COUNTRY.value].lower()), None)
+
+
+def get_country_code(row: pd.Series) -> str | None:
+    '''
+    Tries to find an alpha-3 code given `row.Country`.
+
+    Parameters
+    ---
+    `row` : Series representing a row.
+
+    Returns
+    ---
+    `str` representing alpha-3 country code, or `None` if no country is found.
+    '''
+    # remove anything in square brackets or parentheses before searching:
+    
+    try:
+        query = re.sub(r'(?:\[|\().*?(?:\]|\))', '', row[ColumnName.COUNTRY.value])
+        countries = pycountry.countries.search_fuzzy(query)
+        
+        if countries is None or len(countries) == 0:
+            return
+
+        return countries[0].alpha_3
+    except LookupError:
+        return
 
 
 def get_regulation(row: pd.Series, column_name: str, is_restriction: bool) -> Regulation:
@@ -174,12 +202,13 @@ def get_cleaned_data() -> pd.DataFrame:
     
     # Rename columns for readability.
     gun_deaths_df.rename(columns={
+        'Unnamed: 2': ColumnName.COUNTRY_CODE.value,
         'Unnamed: 3': ColumnName.COUNTRY.value,
         'Rate.3': ColumnName.DEATH_RATE.value
     }, inplace=True)
 
     # Drop rows with no country.
-    gun_deaths_df.dropna(subset=[ColumnName.COUNTRY.value], inplace=True)
+    gun_deaths_df.dropna(subset=[ColumnName.COUNTRY_CODE.value, ColumnName.COUNTRY.value], inplace=True)
 
     # Create civilian gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.xlsx
@@ -190,7 +219,7 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Rename columns for readability.
     civilian_guns_df.rename(columns={
-        civilian_guns_df.columns[0]: ColumnName.COUNTRY.value,
+        civilian_guns_df.columns[0]: ColumnName.COUNTRY_CODE.value,
         civilian_guns_df.columns[1]: ColumnName.CIVILIAN_FIREARMS.value
     }, inplace=True)
 
@@ -218,7 +247,7 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Rename columns for readability.
     military_guns_df.rename(columns={
-        'Country.1': ColumnName.COUNTRY.value,
+        'Country': ColumnName.COUNTRY_CODE.value
     }, inplace=True)
 
     # Create police gun holdings dataframe from Small Arms Survey pdf.
@@ -238,7 +267,7 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Rename columns for readability.
     police_guns_df.rename(columns={
-        'Unnamed: 1': ColumnName.COUNTRY.value,
+        'Unnamed: 0': ColumnName.COUNTRY_CODE.value
     }, inplace=True)
 
     # Create gun laws dataframe from wikipedia article.
@@ -266,8 +295,13 @@ def get_cleaned_data() -> pd.DataFrame:
     # Drop rows that represent subheadings.
     gun_laws_df = gun_laws_df[gun_laws_df[ColumnName.COUNTRY.value] != 'Region']
 
+    gun_laws_df[ColumnName.COUNTRY_CODE.value] = gun_laws_df.apply(get_country_code, axis=1)
+    gun_laws_df.drop([ColumnName.COUNTRY.value], axis=1, inplace=True)
+
+    gun_laws_df.dropna(subset=[ColumnName.COUNTRY_CODE.value], inplace=True)
+
     # Rename countries in gun laws dataframe so that they match countries in gun deaths dataframe.
-    gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
+    #gun_laws_df[ColumnName.COUNTRY.value] = gun_laws_df.apply(get_country_name, axis=1, args=[gun_deaths_df])
 
     # Add Regulation enum values to cells.
     convert_to_regulations(gun_laws_df)
@@ -276,9 +310,11 @@ def get_cleaned_data() -> pd.DataFrame:
     gun_laws_df[ColumnName.OVERALL_REGULATION.value] = gun_laws_df.apply(get_mean_regulation, axis=1)
 
     # Merge dataframes, dropping rows that do not have a share a country name.
-    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='inner', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY.value)
-    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY.value)
+    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='inner', on=ColumnName.COUNTRY_CODE.value)
+    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
+    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
+    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
 
+
+    print(merged_df.sample(30))
     return merged_df
