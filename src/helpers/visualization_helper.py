@@ -55,7 +55,7 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> Fig
     column_data_source = ColumnDataSource(relevant_df)
     fig = figure(plot_width=1000)
     fig.circle(x=x_column_name, y=y_column_name,
-        source=column_data_source, size=8, color='white', name='countries')
+        source=column_data_source, size=10, line_color='white', color='#2F2F2F', hover_color='white', alpha=0.6, hover_alpha=1, name='countries')
     fig.line(x=relevant_df[x_column_name], y=create_regression_line(relevant_df, x_column_name, y_column_name),
         color='red')
 
