@@ -11,13 +11,18 @@
         color: #fff;
         background: #2F2F2F;
       }
+      a {
+        color: #ca5959;
+      }
     </style>
     {{ bokeh_css }}
     {{ bokeh_js }}
-    <link rel="stylesheet" href="stocktext/static/css/styles.css"/>
   </head>
   <body>
-  {{ plot_div|indent(8) }}
-  {{ plot_script|indent(8) }}
+    <header>
+      <h1>Gun Violence Correlations - An Analysis</h1>
+    </header>
+  {{ plot_div }}
+  {{ plot_script }}
   </body>
 </html>

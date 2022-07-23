@@ -3,8 +3,8 @@ from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
 from bokeh.layouts import column, row
-from bokeh.plotting import figure, output_file, curdoc
-from bokeh.models import ColumnDataSource, Circle, Select
+from bokeh.plotting import figure, curdoc
+from bokeh.models import ColumnDataSource, Select, Div
 from bokeh.models.tools import HoverTool
 from enums.ColumnName import REGULATION_COLUMN_NAMES, ColumnName, TEXT_COLUMN_NAMES
 
@@ -61,10 +61,10 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str, highli
     fig.circle(x=x_column_name, y=y_column_name,
         source=column_data_source, size=10, color="#2F2F2F", line_color='white', alpha=0.5, hover_alpha=1, hover_color='white', name='countries')
     fig.circle(x=x_column_name, y=y_column_name,
-        source=highlighted_column_data_source, size=10, color="red", name='highlighted country')
+        source=highlighted_column_data_source, size=10, color="#ca5959", name='highlighted country')
 
     fig.line(x=relevant_df[x_column_name], y=create_regression_line(relevant_df, x_column_name, y_column_name),
-        color='red')
+        color='#ca5959')
 
     fig.title.text = f'{x_column_name} vs {y_column_name}'
     fig.xaxis.axis_label = x_column_name
@@ -89,11 +89,16 @@ def initialize_bokeh(df: pd.DataFrame):
 
     countries = df[ColumnName.COUNTRY.value].tolist()
 
+    description = Div(text='''
+        Created by Richard Oden for Code Louisville's May 2022 Data 2 class. Data sourced from 
+        <a target="_blank" href="https://smallarmssurvey.org/">Small Arms Survey</a> and 
+        <a target="_blank" href="https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation">Wikipedia</a>. 
+        View the source code on <a target="_blank" href="https://github.com/richard-oden/gun-violence-correlations">Github</a>.''')
     x_select = Select(title='X-Axis Statistic', value=ColumnName.OVERALL_REGULATION.value, options=selectable_columns)
     y_select = Select(title='Y-Axis Statistic', value=ColumnName.DEATH_RATE.value, options=selectable_columns)
     highlighted_country_select = Select(title='Highlighted Country', value='United States', options=countries)
 
-    controls = column(x_select, y_select, highlighted_country_select, width=400)
+    controls = column(x_select, y_select, highlighted_country_select, description, width=400)
     layout = row(controls, create_plot(df, x_select.value, y_select.value, highlighted_country_select.value))
 
     #on_change callback functions must have the signature func(attr, old, new).
