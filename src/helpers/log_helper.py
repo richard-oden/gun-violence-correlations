@@ -12,7 +12,7 @@ def configure_logging() -> None:
         datefmt='%m/%d/%Y %I:%M:%S %p',
         level=logging.INFO)
     handler = TimedRotatingFileHandler(
-        filename=os.path.join('static', 'logs', 'log.txt'), 
+        filename=os.path.join('src', 'static', 'logs', 'log.txt'), 
         when='midnight', 
         interval=1)
     handler.suffix = "%Y-%m-%d"
@@ -26,7 +26,7 @@ def log_info(message: str) -> None:
 
     Parameters
     ---
-    `message` : `str` representing the message to be logged.
+    `message` : `str` representing the message to be logged
     '''
     logging.info(message)
 
@@ -36,21 +36,33 @@ def log_error(message: str) -> None:
 
     Parameters
     ---
-    `message` : `str` representing the message to be logged.
+    `message` : `str` representing the message to be logged
     '''
     logging.error(message)
 
 def start_timed_log(message: str) -> float:
     '''
-    Logs a message with severity INFO and returns.
+    Logs a message with severity INFO and returns a float representing the current time.
 
     Parameters
     ---
-    `message` : `str` representing the message to be logged.
+    `message` : `str` representing the message to be logged
+
+    Returns
+    ---
+    `float` representing the current time in seconds since epoch
     '''
     logging.info(message)
     return time.time()
 
-def stop_timed_log(message: str, start_time: float) -> float:
-    logging.info(message)
-    return round((time.time() - start_time), 2)
+def stop_timed_log(message: str, start_time: float) -> None:
+    '''
+    Logs a message with severity INFO that contains the number of seconds that have elpased since `start_time`.
+
+    Parameters
+    ---
+    `message` : `str` representing the message to be logged
+    `start_time` : `float` representing the start time in seconds since epoch
+    '''
+
+    logging.info(f'{message} Time elapsed: {round((time.time() - start_time), 2)}s')

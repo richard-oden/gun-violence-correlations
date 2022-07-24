@@ -2,6 +2,7 @@ import os
 import re
 import pandas as pd
 import pycountry
+import helpers.log_helper as lh
 from enums.ColumnName import ColumnName, REGULATION_COLUMN_NAMES, TEXT_COLUMN_NAMES
 from enums.Regulation import Regulation
 from statistics import mean
@@ -181,7 +182,9 @@ def get_cleaned_data() -> pd.DataFrame:
     '''
     # Create gun deaths dataframe from Small Arms Survey excel document.
     # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
+    gun_deaths_import_start = lh.start_timed_log('Importing gun deaths dataset.')
     gun_deaths_df = get_gun_deaths_df()
+    lh.stop_timed_log('Finished importing gun deaths dataset', gun_deaths_import_start)
     
     # Rename columns for readability.
     gun_deaths_df.rename(columns={
