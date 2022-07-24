@@ -1,7 +1,0 @@
-WebSocket connection opened
-ServerConnection created
-WebSocket connection opened
-ServerConnection created
-WebSocket connection closed: code=1001, reason=None
-WebSocket connection opened
-ServerConnection created
