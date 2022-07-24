@@ -184,9 +184,10 @@ def get_cleaned_data() -> pd.DataFrame:
     # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
     gun_deaths_import_start = lh.start_timed_log('Importing gun deaths dataset.')
     gun_deaths_df = get_gun_deaths_df()
-    lh.stop_timed_log('Finished importing gun deaths dataset', gun_deaths_import_start)
+    lh.stop_timed_log('Finished importing gun deaths dataset.', gun_deaths_import_start)
     
     # Rename columns for readability.
+    gun_deaths_cleaning_start = lh.start_timed_log('Cleaning gun deaths dataset.')
     gun_deaths_df.rename(columns={
         'Unnamed: 2': ColumnName.COUNTRY_CODE.value,
         'Unnamed: 3': ColumnName.COUNTRY.value,
@@ -195,12 +196,16 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Drop rows with no country.
     gun_deaths_df.dropna(subset=[ColumnName.COUNTRY_CODE.value, ColumnName.COUNTRY.value], inplace=True)
+    lh.stop_timed_log('Finished cleaning gun deaths dataset.', gun_deaths_cleaning_start)
 
     # Create civilian gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.xlsx
+    civilian_guns_import_start = lh.start_timed_log('Importing civilian guns dataset.')
     civilian_guns_df = get_civilian_guns_df()
+    lh.stop_timed_log('Finished importing civilian guns dataset.', civilian_guns_import_start)
 
     # Drop unwanted rows/columns from dataframe.
+    civilian_guns_cleaning_start = lh.start_timed_log('Cleaning civilian guns dataset.')
     civilian_guns_df.dropna(inplace=True)
 
     # Rename columns for readability.
@@ -212,12 +217,16 @@ def get_cleaned_data() -> pd.DataFrame:
     # Convert civilian gun ownership rate to float and drop invalid values.
     civilian_guns_df[ColumnName.CIVILIAN_FIREARMS.value] = pd.to_numeric(civilian_guns_df[ColumnName.CIVILIAN_FIREARMS.value], errors='coerce')
     civilian_guns_df.dropna(inplace=True)
+    lh.stop_timed_log('Finished cleaning civilian guns dataset.', civilian_guns_cleaning_start)
 
     # Create military gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Military-owned-firearms-annexe.xlsx
+    military_guns_import_start = lh.start_timed_log('Importing military guns dataset.')
     military_guns_df = get_military_guns_df()
+    lh.stop_timed_log('Finished importing military guns dataset.', military_guns_import_start)
     
     # Drop unwanted rows/columns from dataframe.
+    military_guns_cleaning_start = lh.start_timed_log('Cleaning military guns dataset.')
     military_guns_df.dropna(inplace=True)
 
     # Convert population and firearm counts to int, then drop any invalid rows.
@@ -235,12 +244,16 @@ def get_cleaned_data() -> pd.DataFrame:
     military_guns_df.rename(columns={
         'Country': ColumnName.COUNTRY_CODE.value
     }, inplace=True)
+    lh.stop_timed_log('Finished cleaning military guns dataset.', military_guns_cleaning_start)
 
     # Create police gun holdings dataframe from Small Arms Survey pdf.
     # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Law-enforcement-firearms-annexe.xlsx
+    police_guns_import_start = lh.start_timed_log('Importing police guns dataset.')
     police_guns_df = get_police_guns_df()
+    lh.stop_timed_log('Finished importing police guns dataset.', police_guns_import_start)
 
     # Convert population and firearm counts to int, then drop any invalid rows.
+    police_guns_cleaning_start = lh.start_timed_log('Cleaning police guns dataset.')
     police_guns_df['Unnamed: 4'] = pd.to_numeric(police_guns_df['Unnamed: 4'], errors='coerce')
     police_guns_df['Unnamed: 7'] = pd.to_numeric(police_guns_df['Unnamed: 7'], errors='coerce')
     police_guns_df.dropna(inplace=True)
@@ -255,12 +268,16 @@ def get_cleaned_data() -> pd.DataFrame:
     police_guns_df.rename(columns={
         'Unnamed: 0': ColumnName.COUNTRY_CODE.value
     }, inplace=True)
+    lh.stop_timed_log('Finished cleaning police guns dataset.', police_guns_cleaning_start)
 
     # Create gun laws dataframe from wikipedia article.
     # https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation
+    gun_laws_import_start = lh.start_timed_log('Importing gun laws dataset.')
     gun_laws_df = get_gun_laws_df()
+    lh.stop_timed_log('Finished importing gun laws dataset.', gun_laws_import_start)
     
     # Convert MultiIndex to single Index.
+    gun_laws_cleaning_start = lh.start_timed_log('Cleaning gun laws dataset.')
     gun_laws_df = gun_laws_df.droplevel(level=[0, 2], axis=1)
 
     # Drop unwanted columns and rename remaining.
@@ -293,11 +310,14 @@ def get_cleaned_data() -> pd.DataFrame:
 
     # Add overall regulation column to dataframe 
     gun_laws_df[ColumnName.OVERALL_REGULATION.value] = gun_laws_df.apply(get_mean_regulation, axis=1)
+    lh.stop_timed_log('Finished cleaning gun laws dataset.', gun_laws_cleaning_start)
 
     # Merge dataframes, dropping rows that do not have a share a country name.
+    merge_start = lh.start_timed_log('Merging datasets.')
     merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='inner', on=ColumnName.COUNTRY_CODE.value)
     merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
     merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
     merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
+    lh.stop_timed_log('Finished merging datasets.', merge_start)
 
     return merged_df
