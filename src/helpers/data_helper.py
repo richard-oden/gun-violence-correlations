@@ -20,6 +20,17 @@ def get_gun_deaths_df() -> pd.DataFrame:
 
 
 def clean_gun_deaths_df(gun_deaths_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Cleans the gun deaths dataframe.
+
+    Parameters
+    ---
+    `gun_deaths_df` : `DataFrame` representing gun deaths by country
+
+    Returns
+    ---
+    the cleaned `DataFrame` instance
+    '''
     # Rename columns for readability.
     gun_deaths_df.rename(columns={
         'Unnamed: 2': ColumnName.COUNTRY_CODE.value,
@@ -45,6 +56,17 @@ def get_civilian_guns_df() -> pd.DataFrame:
 
 
 def clean_civilian_guns_df(civilian_guns_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Cleans the civilian guns dataframe.
+
+    Parameters
+    ---
+    `gun_deaths_df` : `DataFrame` representing civilian gun holdings by country
+
+    Returns
+    ---
+    the cleaned `DataFrame` instance
+    '''
     # Drop unwanted rows/columns from dataframe.
     civilian_guns_df.dropna(inplace=True)
 
@@ -73,6 +95,17 @@ def get_military_guns_df() -> pd.DataFrame:
 
 
 def clean_military_guns_df(military_guns_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Cleans the military guns dataframe.
+
+    Parameters
+    ---
+    `gun_deaths_df` : `DataFrame` representing military gun holdings by country
+
+    Returns
+    ---
+    the cleaned `DataFrame` instance
+    '''
     # Drop unwanted rows/columns from dataframe.
     military_guns_df.dropna(inplace=True)
 
@@ -107,6 +140,17 @@ def get_police_guns_df() -> pd.DataFrame:
 
 
 def clean_police_guns_df(police_guns_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Cleans the police guns dataframe.
+
+    Parameters
+    ---
+    `gun_deaths_df` : `DataFrame` representing law enforcement gun holdings by country
+
+    Returns
+    ---
+    the cleaned `DataFrame` instance
+    '''
     # Convert population and firearm counts to int, then drop any invalid rows.
     police_guns_df['Unnamed: 4'] = pd.to_numeric(police_guns_df['Unnamed: 4'], errors='coerce')
     police_guns_df['Unnamed: 7'] = pd.to_numeric(police_guns_df['Unnamed: 7'], errors='coerce')
@@ -138,6 +182,17 @@ def get_gun_laws_df() -> pd.DataFrame:
 
 
 def clean_gun_laws_df(gun_laws_df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Cleans the gun laws dataframe.
+
+    Parameters
+    ---
+    `gun_deaths_df` : `DataFrame` representing gun legislation by country
+
+    Returns
+    ---
+    the cleaned `DataFrame` instance
+    '''
     # Convert MultiIndex to single Index.
     gun_laws_df = gun_laws_df.droplevel(level=[0, 2], axis=1)
 
