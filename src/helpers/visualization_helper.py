@@ -1,9 +1,8 @@
-import os
-from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
+import helpers.log_helper as lh
 from bokeh.layouts import column, row
-from bokeh.plotting import figure, curdoc
+from bokeh.plotting import curdoc, figure, Figure
 from bokeh.models import ColumnDataSource, Select, Div
 from bokeh.models.tools import HoverTool
 from enums.ColumnName import REGULATION_COLUMN_NAMES, ColumnName, TEXT_COLUMN_NAMES
@@ -103,6 +102,7 @@ def initialize_bokeh(df: pd.DataFrame):
 
     #on_change callback functions must have the signature func(attr, old, new).
     def update(attr, old, new):
+        lh.log_info(f'Updating plot with the following values:\n\tX: {x_select.value}, Y: {y_select.value}, HIGHLIGHTED: {highlighted_country_select.value}')
         layout.children[1] = create_plot(df, x_select.value, y_select.value, highlighted_country_select.value)
 
     [select.on_change('value', update) for select in [x_select, y_select, highlighted_country_select]]
