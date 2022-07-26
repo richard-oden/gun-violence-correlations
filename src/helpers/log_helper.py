@@ -3,6 +3,7 @@ import os
 import time
 from datetime import datetime
 
+
 logger = None
 
 
@@ -37,6 +38,7 @@ def log_info(message: str) -> None:
     '''
     logger.info(message)
 
+
 def log_error(message: str) -> None:
     '''
     Logs a message with severity ERROR.
@@ -46,6 +48,7 @@ def log_error(message: str) -> None:
     `message` : `str` representing the message to be logged
     '''
     logger.error(message)
+
 
 def start_timed_log(message: str) -> float:
     '''
@@ -61,6 +64,7 @@ def start_timed_log(message: str) -> float:
     '''
     logger.info(message)
     return time.time()
+
 
 def stop_timed_log(message: str, start_time: float) -> None:
     '''
