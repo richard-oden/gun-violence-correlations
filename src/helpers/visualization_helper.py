@@ -8,27 +8,39 @@ from bokeh.models.tools import HoverTool
 from enums.ColumnName import REGULATION_COLUMN_NAMES, ColumnName, TEXT_COLUMN_NAMES
 
 
-def create_regression_line(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> list:
-    '''
-    Given the supplied `DataFrame`, calculates a regression line indicating the
-    overall trend.
+def initialize_bokeh(df: pd.DataFrame):
+    selectable_columns = [column_name.value for column_name in [
+        ColumnName.DEATH_RATE, 
+        ColumnName.OVERALL_REGULATION,
+        *REGULATION_COLUMN_NAMES, 
+        ColumnName.CIVILIAN_FIREARMS, 
+        ColumnName.MILITARY_FIREARMS, 
+        ColumnName.POLICE_FIREARMS]]
 
-    Parameters
-    ---
-    `df` : `DataFrame` object
-    `x_column_name` : `str` representing the column to be plotted on the x-axis
-    `y_column_name` : `str` representing the column to be plotted on the y-axis
+    countries = df[ColumnName.COUNTRY.value].tolist()
 
-    Returns
-    ---
-    a `list` of y coordinate values for the regression line.
-    '''
-    par = np.polyfit(df[x_column_name], df[y_column_name], 1, full=True)
-    slope=par[0][0]
-    intercept=par[0][1]
+    description = Div(text='''
+        Created by Richard Oden for Code Louisville's May 2022 Data 2 class. Data sourced from 
+        <a target="_blank" href="https://smallarmssurvey.org/">Small Arms Survey</a> and 
+        <a target="_blank" href="https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation">Wikipedia</a>. 
+        View the source code on <a target="_blank" href="https://github.com/richard-oden/gun-violence-correlations">Github</a>.''')
+    x_select = Select(title='X-Axis Statistic', value=ColumnName.OVERALL_REGULATION.value, options=selectable_columns)
+    y_select = Select(title='Y-Axis Statistic', value=ColumnName.DEATH_RATE.value, options=selectable_columns)
+    highlighted_country_select = Select(title='Highlighted Country', value='United States', options=countries)
 
-    return [slope*x + intercept for x in df[x_column_name]]
+    controls = column(x_select, y_select, highlighted_country_select, description, width=400)
+    layout = row(controls, create_plot(df, x_select.value, y_select.value, highlighted_country_select.value))
 
+    #on_change callback functions must have the signature func(attr, old, new).
+    def update(attr, old, new):
+        lh.log_info(f'Updating plot with the following values:\n\tX: {x_select.value}, Y: {y_select.value}, HIGHLIGHTED: {highlighted_country_select.value}')
+        layout.children[1] = create_plot(df, x_select.value, y_select.value, highlighted_country_select.value)
+
+    [select.on_change('value', update) for select in [x_select, y_select, highlighted_country_select]]
+
+    curdoc().add_root(layout)
+    curdoc().title = "Gun Violence Correlations"
+    
 
 def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str, highlighted_country_name: str) -> Figure:
     '''
@@ -77,35 +89,23 @@ def create_plot(df: pd.DataFrame, x_column_name: str, y_column_name: str, highli
     return fig
     
 
-def initialize_bokeh(df: pd.DataFrame):
-    selectable_columns = [column_name.value for column_name in [
-        ColumnName.DEATH_RATE, 
-        ColumnName.OVERALL_REGULATION,
-        *REGULATION_COLUMN_NAMES, 
-        ColumnName.CIVILIAN_FIREARMS, 
-        ColumnName.MILITARY_FIREARMS, 
-        ColumnName.POLICE_FIREARMS]]
+def create_regression_line(df: pd.DataFrame, x_column_name: str, y_column_name: str) -> list:
+    '''
+    Given the supplied `DataFrame`, calculates a regression line indicating the
+    overall trend.
 
-    countries = df[ColumnName.COUNTRY.value].tolist()
+    Parameters
+    ---
+    `df` : `DataFrame` object
+    `x_column_name` : `str` representing the column to be plotted on the x-axis
+    `y_column_name` : `str` representing the column to be plotted on the y-axis
 
-    description = Div(text='''
-        Created by Richard Oden for Code Louisville's May 2022 Data 2 class. Data sourced from 
-        <a target="_blank" href="https://smallarmssurvey.org/">Small Arms Survey</a> and 
-        <a target="_blank" href="https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation">Wikipedia</a>. 
-        View the source code on <a target="_blank" href="https://github.com/richard-oden/gun-violence-correlations">Github</a>.''')
-    x_select = Select(title='X-Axis Statistic', value=ColumnName.OVERALL_REGULATION.value, options=selectable_columns)
-    y_select = Select(title='Y-Axis Statistic', value=ColumnName.DEATH_RATE.value, options=selectable_columns)
-    highlighted_country_select = Select(title='Highlighted Country', value='United States', options=countries)
+    Returns
+    ---
+    a `list` of y coordinate values for the regression line.
+    '''
+    par = np.polyfit(df[x_column_name], df[y_column_name], 1, full=True)
+    slope=par[0][0]
+    intercept=par[0][1]
 
-    controls = column(x_select, y_select, highlighted_country_select, description, width=400)
-    layout = row(controls, create_plot(df, x_select.value, y_select.value, highlighted_country_select.value))
-
-    #on_change callback functions must have the signature func(attr, old, new).
-    def update(attr, old, new):
-        lh.log_info(f'Updating plot with the following values:\n\tX: {x_select.value}, Y: {y_select.value}, HIGHLIGHTED: {highlighted_country_select.value}')
-        layout.children[1] = create_plot(df, x_select.value, y_select.value, highlighted_country_select.value)
-
-    [select.on_change('value', update) for select in [x_select, y_select, highlighted_country_select]]
-
-    curdoc().add_root(layout)
-    curdoc().title = "Gun Violence Correlations"
+    return [slope*x + intercept for x in df[x_column_name]]

@@ -8,6 +8,76 @@ from enums.Regulation import Regulation
 from statistics import mean
 
 
+def get_cleaned_data() -> pd.DataFrame:
+    '''
+    Retrieves and cleans data regarding gun legislation, gun ownership, and gun-releated deaths and returns 
+    the result as a `DataFrame`.
+
+    Returns
+    ---
+    `DataFrame` representing gun legislation, gun ownership, and gun-related death data by country.
+    '''
+    # Create gun deaths dataframe from Small Arms Survey excel document.
+    # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
+    gun_deaths_import_start = lh.start_timed_log('Importing gun deaths dataset.')
+    gun_deaths_df = get_gun_deaths_df()
+    lh.stop_timed_log('Finished importing gun deaths dataset.', gun_deaths_import_start)
+    
+    gun_deaths_cleaning_start = lh.start_timed_log('Cleaning gun deaths dataset.')
+    gun_deaths_df = clean_gun_deaths_df(gun_deaths_df)
+    lh.stop_timed_log('Finished cleaning gun deaths dataset.', gun_deaths_cleaning_start)
+
+    # Create civilian gun holdings dataframe from Small Arms Survey pdf.
+    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.xlsx
+    civilian_guns_import_start = lh.start_timed_log('Importing civilian guns dataset.')
+    civilian_guns_df = get_civilian_guns_df()
+    lh.stop_timed_log('Finished importing civilian guns dataset.', civilian_guns_import_start)
+
+    civilian_guns_cleaning_start = lh.start_timed_log('Cleaning civilian guns dataset.')
+    civilian_guns_df = clean_civilian_guns_df(civilian_guns_df)
+    lh.stop_timed_log('Finished cleaning civilian guns dataset.', civilian_guns_cleaning_start)
+
+    # Create military gun holdings dataframe from Small Arms Survey pdf.
+    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Military-owned-firearms-annexe.xlsx
+    military_guns_import_start = lh.start_timed_log('Importing military guns dataset.')
+    military_guns_df = get_military_guns_df()
+    lh.stop_timed_log('Finished importing military guns dataset.', military_guns_import_start)
+    
+    military_guns_cleaning_start = lh.start_timed_log('Cleaning military guns dataset.')
+    military_guns_df = clean_military_guns_df(military_guns_df)
+    lh.stop_timed_log('Finished cleaning military guns dataset.', military_guns_cleaning_start)
+
+    # Create police gun holdings dataframe from Small Arms Survey pdf.
+    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Law-enforcement-firearms-annexe.xlsx
+    police_guns_import_start = lh.start_timed_log('Importing police guns dataset.')
+    police_guns_df = get_police_guns_df()
+    lh.stop_timed_log('Finished importing police guns dataset.', police_guns_import_start)
+
+    police_guns_cleaning_start = lh.start_timed_log('Cleaning police guns dataset.')
+    police_guns_df = clean_police_guns_df(police_guns_df)
+    lh.stop_timed_log('Finished cleaning police guns dataset.', police_guns_cleaning_start)
+
+    # Create gun laws dataframe from wikipedia article.
+    # https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation
+    gun_laws_import_start = lh.start_timed_log('Importing gun laws dataset.')
+    gun_laws_df = get_gun_laws_df()
+    lh.stop_timed_log('Finished importing gun laws dataset.', gun_laws_import_start)
+    
+    gun_laws_cleaning_start = lh.start_timed_log('Cleaning gun laws dataset.')
+    gun_laws_df = clean_gun_laws_df(gun_laws_df)
+    lh.stop_timed_log('Finished cleaning gun laws dataset.', gun_laws_cleaning_start)
+
+    # Merge dataframes, dropping rows that do not have a share a country name.
+    merge_start = lh.start_timed_log('Merging datasets.')
+    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='inner', on=ColumnName.COUNTRY_CODE.value)
+    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
+    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
+    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
+    lh.stop_timed_log('Finished merging datasets.', merge_start)
+
+    return merged_df
+
+
 def get_gun_deaths_df() -> pd.DataFrame:
     '''
     Imports Small-Arms-Survey-DB-violent-deaths.xlsx and parses as a `DataFrame`.
@@ -336,73 +406,3 @@ def get_mean_regulation(row: pd.Series) -> float:
 
 def get_guns_per_100_persons(row: pd.Series, population_col_name: str, guns_col_name: str) -> float:
     return (int(row[guns_col_name]) / int(row[population_col_name])) * 100
-
-
-def get_cleaned_data() -> pd.DataFrame:
-    '''
-    Retrieves and cleans data regarding gun legislation, gun ownership, and gun-releated deaths and returns 
-    the result as a `DataFrame`.
-
-    Returns
-    ---
-    `DataFrame` representing gun legislation and gun-related death data by country.
-    '''
-    # Create gun deaths dataframe from Small Arms Survey excel document.
-    # https://www.smallarmssurvey.org/database/global-violent-deaths-gvd
-    gun_deaths_import_start = lh.start_timed_log('Importing gun deaths dataset.')
-    gun_deaths_df = get_gun_deaths_df()
-    lh.stop_timed_log('Finished importing gun deaths dataset.', gun_deaths_import_start)
-    
-    gun_deaths_cleaning_start = lh.start_timed_log('Cleaning gun deaths dataset.')
-    gun_deaths_df = clean_gun_deaths_df(gun_deaths_df)
-    lh.stop_timed_log('Finished cleaning gun deaths dataset.', gun_deaths_cleaning_start)
-
-    # Create civilian gun holdings dataframe from Small Arms Survey pdf.
-    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Civilian-held-firearms-annexe.xlsx
-    civilian_guns_import_start = lh.start_timed_log('Importing civilian guns dataset.')
-    civilian_guns_df = get_civilian_guns_df()
-    lh.stop_timed_log('Finished importing civilian guns dataset.', civilian_guns_import_start)
-
-    civilian_guns_cleaning_start = lh.start_timed_log('Cleaning civilian guns dataset.')
-    civilian_guns_df = clean_civilian_guns_df(civilian_guns_df)
-    lh.stop_timed_log('Finished cleaning civilian guns dataset.', civilian_guns_cleaning_start)
-
-    # Create military gun holdings dataframe from Small Arms Survey pdf.
-    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Military-owned-firearms-annexe.xlsx
-    military_guns_import_start = lh.start_timed_log('Importing military guns dataset.')
-    military_guns_df = get_military_guns_df()
-    lh.stop_timed_log('Finished importing military guns dataset.', military_guns_import_start)
-    
-    military_guns_cleaning_start = lh.start_timed_log('Cleaning military guns dataset.')
-    military_guns_df = clean_military_guns_df(military_guns_df)
-    lh.stop_timed_log('Finished cleaning military guns dataset.', military_guns_cleaning_start)
-
-    # Create police gun holdings dataframe from Small Arms Survey pdf.
-    # https://www.smallarmssurvey.org/sites/default/files/resources/SAS-BP-Law-enforcement-firearms-annexe.xlsx
-    police_guns_import_start = lh.start_timed_log('Importing police guns dataset.')
-    police_guns_df = get_police_guns_df()
-    lh.stop_timed_log('Finished importing police guns dataset.', police_guns_import_start)
-
-    police_guns_cleaning_start = lh.start_timed_log('Cleaning police guns dataset.')
-    police_guns_df = clean_police_guns_df(police_guns_df)
-    lh.stop_timed_log('Finished cleaning police guns dataset.', police_guns_cleaning_start)
-
-    # Create gun laws dataframe from wikipedia article.
-    # https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation
-    gun_laws_import_start = lh.start_timed_log('Importing gun laws dataset.')
-    gun_laws_df = get_gun_laws_df()
-    lh.stop_timed_log('Finished importing gun laws dataset.', gun_laws_import_start)
-    
-    gun_laws_cleaning_start = lh.start_timed_log('Cleaning gun laws dataset.')
-    gun_laws_df = clean_gun_laws_df(gun_laws_df)
-    lh.stop_timed_log('Finished cleaning gun laws dataset.', gun_laws_cleaning_start)
-
-    # Merge dataframes, dropping rows that do not have a share a country name.
-    merge_start = lh.start_timed_log('Merging datasets.')
-    merged_df = pd.merge(gun_laws_df, gun_deaths_df, how='inner', on=ColumnName.COUNTRY_CODE.value)
-    merged_df = pd.merge(merged_df, civilian_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
-    merged_df = pd.merge(merged_df, military_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
-    merged_df = pd.merge(merged_df, police_guns_df, how='left', on=ColumnName.COUNTRY_CODE.value)
-    lh.stop_timed_log('Finished merging datasets.', merge_start)
-
-    return merged_df
