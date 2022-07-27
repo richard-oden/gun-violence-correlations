@@ -10,8 +10,8 @@ This project explores the correlations between gun violence, gun ownership, and 
 
 ## Setup
 - Run `git clone https://github.com/richard-oden/gun-violence-correlations.git` to clone the repository.
-- In the instaprices directory, run `python3 -m venv venv` to create the virtual environment.
-- Activate the newly created virtual environment. From the instaprices directory run the following command:
+- In the gun-violence-correlations directory, run `python3 -m venv venv` to create the virtual environment.
+- Activate the newly created virtual environment. From the gun-violence-correlations directory run the following command:
     - if using Windows PowerShell: `venv\Scripts\Activate.ps1`
     - if using Linux or Mac with bash/zsh: `venv/bin/activate`
     - (if you're still having trouble, see [this](https://docs.python.org/3/library/venv.html) and [this](https://itnext.io/a-quick-guide-on-how-to-setup-a-python-virtual-environment-windows-linux-mac-bf662c2c77d3) for help.)
