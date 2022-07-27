@@ -2,7 +2,7 @@
 
 ![Gun violence correlations scatter plot](preview.png)
 
-This project explores the correlations between gun violence, gun ownership, and gun legislation by country, leveraging data from [Wikipedia](https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation) and the [Small Arms Survey](https://smallarmssurvey.org/). The project was also deployed to [Heroku](https://gun-violence-correlations.herokuapp.com/main) and includes the necessary files to deploy it yourself if desired. This was completed as part of Code Louisville's May 2022 Data Analysis 2 course.
+This project explores the correlations between gun violence, gun ownership, and gun legislation by country, leveraging data from [Wikipedia](https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation) and the [Small Arms Survey](https://smallarmssurvey.org/). The project was also deployed to [Heroku](https://gun-violence-correlations.herokuapp.com/src) and includes the necessary files to deploy it yourself if desired. This was completed as part of Code Louisville's May 2022 Data Analysis 2 course.
 
 ## Requirements
 - Python 3.10.2
