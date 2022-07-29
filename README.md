@@ -4,6 +4,8 @@
 
 This project explores the correlations between gun violence, gun ownership, and gun legislation by country, leveraging data from [Wikipedia](https://en.wikipedia.org/wiki/Overview_of_gun_laws_by_nation) and the [Small Arms Survey](https://smallarmssurvey.org/). The project was also deployed to [Heroku](https://gun-violence-correlations.herokuapp.com/src) and includes the necessary files to deploy it yourself if desired. This was completed as part of Code Louisville's May 2022 Data Analysis 2 course.
 
+(**Note:** I ended up not having enough time to execute my original project plan in the way that I wanted, so I decided to change topics. You can see the start of my original project [here](https://github.com/richard-oden/ideal-zipcode).)
+
 ## Requirements
 - Python 3.10.2
 - an internet connection
